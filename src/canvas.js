@@ -15,6 +15,44 @@ function hill(ctx, W, H, baseY, amp, freq, phase, color) {
   for (let x = 0; x <= W; x += W / 40) ctx.lineTo(x, baseY - amp * (0.6 * Math.sin(x / W * freq + phase) + 0.4 * Math.sin(x / W * freq * 2.3 + phase * 1.7)));
   ctx.lineTo(W, H); ctx.closePath(); ctx.fillStyle = color; ctx.fill();
 }
+/* PROP-008: Hollow Ridge grows with the player. Derived from state only (no save data). */
+function drawHorizonProgression(ctx, W, H, u, t) {
+  const arr = s.st.array ? s.st.array.n : 0, rel = s.st.relay ? s.st.relay.n : 0;
+  const hasCheque = s.crew && s.crew.some(w => w.cheque);
+  const ground = H * 0.84;
+  // secondary dishes (1 per ~25 owned, up to 3) on the right ridge
+  const dishes = arr > 0 ? Math.min(3, 1 + Math.floor(arr / 25)) : 0;
+  for (let i = 0; i < dishes; i++) {
+    const x = W * (0.5 + i * 0.09), y = ground - (2 + i) * u, r = (9 - i * 1.5) * u;
+    ctx.fillStyle = C.steel; ctx.fillRect(x - 1.2 * u, y - r, 2.4 * u, r);
+    ctx.fillStyle = C.dish; ctx.beginPath(); ctx.ellipse(x, y - r, r, r * 0.55, -0.5, Math.PI, 0); ctx.fill();
+    ctx.fillStyle = C['dish-shade']; ctx.beginPath(); ctx.arc(x + r * 0.25, y - r - r * 0.5, 1.2 * u, 0, 6.283); ctx.fill();
+  }
+  // relay tower with a blinking mast light
+  if (rel > 0) {
+    const x = W * 0.78, top = ground - 46 * u;
+    ctx.strokeStyle = C.steel; ctx.lineWidth = 1.6 * u;
+    ctx.beginPath(); ctx.moveTo(x - 6 * u, ground); ctx.lineTo(x, top); ctx.lineTo(x + 6 * u, ground);
+    ctx.moveTo(x - 3.5 * u, ground - 18 * u); ctx.lineTo(x + 3.5 * u, ground - 18 * u); ctx.stroke();
+    if (Math.floor(t / 600) % 2 === 0) { ctx.fillStyle = C.danger; ctx.beginPath(); ctx.arc(x, top, 2 * u, 0, 6.283); ctx.fill(); }
+  }
+  // Cheque's HVAC van parked by the dish pedestal
+  if (hasCheque) {
+    const x = W * 0.3 + 26 * u, y = H * 0.93 - 2 * u, w = 30 * u, h = 13 * u;
+    ctx.fillStyle = C.ink; ctx.fillRect(x, y - h, w, h);
+    ctx.fillStyle = C.signal; ctx.fillRect(x, y - h * 0.55, w * 0.62, h * 0.12);
+    ctx.fillStyle = C['panel-2']; ctx.fillRect(x + w * 0.68, y - h * 0.85, w * 0.26, h * 0.4);
+    ctx.fillStyle = C.void;
+    for (const wx of [0.2, 0.78]) { ctx.beginPath(); ctx.arc(x + w * wx, y, 2.6 * u, 0, 6.283); ctx.fill(); }
+    if (s.heat > 50) { // cooling exhaust shimmer
+      ctx.strokeStyle = C.signal; ctx.lineWidth = 1 * u;
+      for (let k = 0; k < 3; k++) { const ph = ((t * 0.0006 + k / 3) % 1); ctx.globalAlpha = (1 - ph) * 0.5;
+        ctx.beginPath(); ctx.arc(x + w * 0.3 + k * 4 * u, y - h - ph * 14 * u, 2 * u, 0, 6.283); ctx.stroke(); }
+      ctx.globalAlpha = 1;
+    }
+  }
+}
+
 function drawScene(info, t) {
   const ctx = sctx, W = scene.width, H = scene.height; if (!W || !H) return;
   const u = H / 210;
@@ -71,6 +109,7 @@ function drawScene(info, t) {
   ctx.fillStyle = C.steel; ctx.beginPath(); ctx.arc(px, py, 6 * u, 0, 6.283); ctx.fill();
   // aircraft warning light
   if (Math.floor(t / 800) % 2 === 0) { ctx.fillStyle = C.danger; ctx.beginPath(); ctx.arc(px, py - 9 * u, 1.8 * u, 0, 6.283); ctx.fill(); }
+  drawHorizonProgression(ctx, W, H, u, t);
   // near hill over the pedestal foot
   hill(ctx, W, H, H * 0.93, 6 * u, 3, 4.2, C['hill-near']);
   // dust
