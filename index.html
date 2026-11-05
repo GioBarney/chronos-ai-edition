@@ -42,6 +42,8 @@
             <span class="led" id="led" data-s="idle">Idle</span>
             <div class="freq" id="freq">1420.380<small>MHz</small></div>
             <p class="hint" id="hint">Hold the dial and turn it until your blue wave lines up with the pink one.</p>
+            <button class="btn glint" id="glintBtn" type="button" hidden>Catch the glint</button>
+            <span class="label surge" id="surgeTag" hidden></span>
           </div>
         </div>
         <div class="switchrow" id="limrow" hidden>
@@ -108,13 +110,14 @@
       <button class="btn ghost" id="devSkip" type="button">Finish current decode</button>
       <button class="btn ghost" id="devPho" type="button">+500 photons</button>
       <button class="btn ghost" id="devCash" type="button">+$1 million</button>
+      <button class="btn ghost" id="devGlint" type="button">Spawn glint</button>
       <button class="btn ghost" id="devClose" type="button">Close</button>
     </div>
   </section>
 
   <footer class="foot">
     <span class="label" id="saved">Auto-saves every 5 s</span>
-    <span class="label" id="ver">AI Edition · council build 0</span>
+    <span class="label" id="ver">AI Edition · council build 1</span>
     <button class="chip" id="testBtn" type="button">Test tools</button>
     <div class="confirm" id="resetBox"><button class="chip" id="reset" type="button">Reset run</button></div>
   </footer>

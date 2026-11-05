@@ -34,7 +34,7 @@ function tick(dt, now) {
 
   let r = 0;
   if (receiving) { r = baseRate() * Math.pow(s.clarity / 100, 1.5); if (s.heat > 85) r *= 1.6; }
-  const total = r + passiveRate() + (rt.holding ? 0 : operatorRate());
+  const total = (r + passiveRate() + (rt.holding ? 0 : operatorRate())) * (surgeOn(now) ? SURGE_MUL : 1);
   s.photons += total * dt; s.total += total * dt;
   rt.rate += (total - rt.rate) * Math.min(1, dt * 4);
   if (r > 0) {
@@ -53,7 +53,36 @@ function tick(dt, now) {
   }
   if (locked && !rt.prevLocked && now - rt.lastChime > 1500) { sfx.lock(); rt.lastChime = now; }
   rt.prevLocked = locked;
+  glintTick(dt, now);
   if (receiving && s.heat > 75 && now - rt.lastWarn > 1100) { sfx.warn(); rt.lastWarn = now; }
   return { tgt, errS, err, band, receiving, locked, tripped };
 }
 
+
+/* ---------- anomaly glints (PROP-005) ----------
+   Play time only: the timer runs inside tick(), so it pauses while the tab is hidden
+   and offline catch-up never spawns glints. */
+function glintTick(dt, now) {
+  if (s.glint) {
+    if (now > s.glint.until) {
+      s.glint = null; s.glintIn = glintGap();
+      if (jobEff('dial') > 0) { const v = glintValue() * GLINT_AUTO; s.photons += v; s.total += v; s.glintsAuto++;
+        toast(`Your dial operator caught the glint you missed: +${big(v)} photons.`); }
+    }
+    return;
+  }
+  if (!s.seenIntro || !$('modal').hidden) return;
+  s.glintIn -= dt;
+  if (s.glintIn <= 0) {
+    s.glint = { kind: Math.random() < (s.clarity < 40 ? 0.5 : 0.75) ? 'surge' : 'clear', until: now + GLINT_WINDOW };
+    sfx.glint(); toast('An anomaly glint is shimmering on the receiver.');
+  }
+}
+function catchGlint() {
+  const g = s.glint, now = Date.now(); if (!g || now > g.until) return;
+  s.glint = null; s.glintIn = glintGap(); s.glints++;
+  ensureAudio(); sfx.glintCatch();
+  if (g.kind === 'surge') { s.surgeUntil = now + SURGE_MS; toast('Photon surge: ×3 photons for 60 seconds.'); }
+  else { s.clarity = 100; toast('The glint cleared the noise. Signal clarity is back to 100%.'); }
+  save();
+}

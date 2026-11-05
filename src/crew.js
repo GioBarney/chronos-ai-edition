@@ -292,6 +292,7 @@ $('devAll').onclick = () => { s.packet = PACKETS.length; s.decode = null; rt.log
 $('devSkip').onclick = () => { if (s.decode) s.decode.endAt = Date.now(); };
 $('devPho').onclick = () => { s.photons += 500; };
 $('devCash').onclick = () => { s.money += 1e6; };
+$('devGlint').onclick = () => { if (!s.glint) s.glintIn = 0; };
 
 document.addEventListener('visibilitychange', () => { if (document.hidden) { endHold(); save(); } });
 window.addEventListener('pagehide', save);

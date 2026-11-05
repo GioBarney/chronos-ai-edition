@@ -121,6 +121,11 @@ function updateUI(info, now) {
   else if (info.locked) { led.dataset.s = 'locked'; led.textContent = 'Locked'; }
   else if (info.receiving) { led.dataset.s = 'search'; led.textContent = 'Searching'; }
   else { led.dataset.s = 'idle'; led.textContent = 'Idle · hold the dial'; }
+  const gb = $('glintBtn'), gl = s.glint && now <= s.glint.until;
+  gb.hidden = !gl;
+  if (gl) gb.textContent = `${s.glint.kind === 'surge' ? 'Catch the glint · ×3 photons' : 'Catch the glint · clear the noise'} · ${dur((s.glint.until - now) / 1000)}`;
+  const st = $('surgeTag'); st.hidden = !surgeOn(now);
+  if (surgeOn(now)) st.textContent = `Photon surge ×${SURGE_MUL} · ${dur((s.surgeUntil - now) / 1000)}`;
   $('limrow').hidden = s.packet < 2;
   $('lim').setAttribute('aria-checked', String(!s.limiterOff));
   if (s.packet >= 7 && !s.funded && $('modal').hidden) {
@@ -240,3 +245,4 @@ $('paperBtn').onclick = () => { const c = paperCost(); if (s.paper || s.photons 
 function renderStationBars() { if (!rt.stEl) return; STATIONS.forEach(st => { const o = s.st[st.id]; rt.stEl[st.id].fill.style.width = (o.run ? o.p * 100 : 0) + '%'; }); }
 $('buyMode').onclick = () => { s.buyMode = s.buyMode === '1' ? '10' : s.buyMode === '10' ? 'max' : '1'; sfx.click(); save(); };
 
+$('glintBtn').onclick = catchGlint;
