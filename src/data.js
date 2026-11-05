@@ -76,13 +76,23 @@ const freshUpSt = () => Object.fromEntries(STATIONS.map(x => [x.id, 0]));
 const MILESTONES = [25, 50, 100, 200, 300, 400];
 const freshSt = () => Object.fromEntries(STATIONS.map(x => [x.id, { n: 0, p: 0, run: false }]));
 const defaultMix = () => Object.fromEntries(MIX.map(m => [m.id, { on: true, vol: m.id === 'master' ? 80 : 100 }]));
+/* ---------- anomaly glints (PROP-005) ---------- */
+const GLINT_MIN = 480, GLINT_MAX = 900;    // seconds of play between glints (8-15 min)
+const GLINT_WINDOW = 20e3;                 // ms to catch one
+const SURGE_MS = 60e3, SURGE_MUL = 3;      // x3 photons for 60 s
+const GLINT_AUTO = 0.25;                   // a dial operator auto-collects missed glints at 25% value
+const glintGap = () => GLINT_MIN + Math.random() * (GLINT_MAX - GLINT_MIN);
+const surgeOn = now => now < s.surgeUntil;
+// photons a full surge adds over 60 s at full clarity (the x3 minus the x1 you'd get anyway)
+const glintValue = () => (SURGE_MUL - 1) * (baseRate() + passiveRate() + operatorRate()) * SURGE_MS / 1000;
 const fresh = () => ({
-  v: 1, startedAt: Date.now(), lastSave: Date.now(),
+  v: 2, startedAt: Date.now(), lastSave: Date.now(),
   photons: 0, total: 0, clarity: 0, heat: 0,
   tuned: 1420.380, knobAngle: 0, drift: 0,
   up: { tuner: 0, lens: 0, horn: 0, lna: 0, sink: 0, tape: 0 },
   packet: 0, decode: null, limiterOff: false, tripUntil: 0,
   caution: 0, risk: 0, seenIntro: false, weekDone: false, muted: false, free: false, mix: defaultMix(), money: 0, buyMode: '1', st: freshSt(), stUp: freshUpSt(), funded: false, papers: 0, paper: null, apps: {}, stipendDay: 0, v2: true, crew: [], inbox: [], listing: false, nextApp: 0, scout: null, scouts: 0, payDay: 0, chequeMet: false, wseq: 1,
+  glintIn: glintGap(), glint: null, surgeUntil: 0, glints: 0, glintsAuto: 0,
 });
 let s = fresh();
 const rt = { holding: false, lastAng: null, limiterCut: false, cautionArmed: false, prevLocked: false,

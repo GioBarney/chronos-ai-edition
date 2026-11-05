@@ -11,6 +11,7 @@
   color-scheme:dark;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{background:var(--void);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--signal);outline-offset:3px}
@@ -176,3 +177,9 @@ canvas{display:block;width:100%;max-width:100%}
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;max-width:min(520px,calc(100% - 32px));padding:11px 16px;border-radius:14px;background:var(--panel-2);border:1px solid var(--line);font-size:14px;box-shadow:0 12px 30px -10px #000;opacity:0;pointer-events:none;transition:opacity .25s}
 .toast.show{opacity:1}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* anomaly glints (PROP-005) */
+.btn.glint{justify-self:start;background:var(--anomaly);color:var(--void);padding:10px 14px;font-size:14px;position:relative;overflow:hidden;box-shadow:0 0 18px color-mix(in srgb,var(--anomaly) 55%,transparent)}
+.btn.glint::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);transform:translateX(-100%);animation:glintSweep 1.8s ease-in-out infinite}
+@keyframes glintSweep{to{transform:translateX(100%)}}
+@media (prefers-reduced-motion:reduce){.btn.glint::after{animation:none;opacity:0}}
+.label.surge{color:var(--anomaly)}

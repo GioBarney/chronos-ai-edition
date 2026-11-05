@@ -2,7 +2,8 @@
 /* ---------- save ---------- */
 function load() {
   try { const raw = localStorage.getItem(KEY);
-    if (raw) { const o = JSON.parse(raw); if (!o.v2) { delete o.money; delete o.st; delete o.stUp; delete o.funded; delete o.seeded; o.v2 = true; } const f = fresh(); return Object.assign(f, o, { up: Object.assign(f.up, o.up || {}) }); }
+    if (raw) { const o = JSON.parse(raw); if (!o.v2) { delete o.money; delete o.st; delete o.stUp; delete o.funded; delete o.seeded; o.v2 = true; } if (!(o.v >= 2)) { o.v = 2; o.glintIn = glintGap(); o.glint = null; o.surgeUntil = 0; o.glints = 0; o.glintsAuto = 0; } // v1 -> v2: anomaly glints (PROP-005)
+      const f = fresh(); return Object.assign(f, o, { up: Object.assign(f.up, o.up || {}) }); }
   } catch (e) {}
   return null;
 }

@@ -77,6 +77,8 @@ const sfx = {
     const o = AC.createOscillator(), g = AC.createGain();
     o.frequency.setValueAtTime(170, t); o.frequency.exponentialRampToValueAtTime(52, t + 0.14);
     env(g, 0.32, 0.004, 0.2, t); o.connect(g).connect(BUS.clicks); o.start(t); o.stop(t + 0.3); this.click(); },
+  glint() { [2093, 2637, 3136].forEach((f, i) => tone(f, 0.018, 1.4, 'sine', i * 0.09)); },
+  glintCatch() { [1046.5, 1568, 2093, 2637].forEach((f, i) => { tone(f, 0.04, 1.5, 'sine', i * 0.07); tone(f * 2.76, 0.006, 0.6, 'sine', i * 0.07); }); },
   warn() { tone(988, 0.025, 0.22); },
   limiter() { tone(784, 0.04, 0.5); tone(523.3, 0.04, 0.7, 'sine', 0.18); },
   trip() { if (!AC) return; const t = AC.currentTime;
