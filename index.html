@@ -1,0 +1,141 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chronos AI Edition</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Rubik:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="src/style.css">
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <span class="sub" id="sub">Hollow Ridge Array · Day 1 · Week 1</span>
+      <h1>Chronos <span>AI Edition</span></h1>
+    </div>
+    <button class="chip" id="soundBtn" type="button" aria-expanded="false" aria-controls="mixer">Sound</button>
+  </header>
+
+  <section class="panel" id="mixer" hidden aria-label="Sound settings">
+    <div class="phead"><h2>Sound</h2><button class="chip" id="mixClose" type="button">Done</button></div>
+    <div class="mixer" id="mixRows"></div>
+  </section>
+
+  <div class="grid">
+    <div class="col">
+      <section class="panel" aria-label="Observatory">
+        <canvas id="scene" aria-hidden="true"></canvas>
+        <div class="readouts">
+          <div class="ro"><span class="label">Signal clarity</span><span class="v" id="clar">0.00%</span></div>
+          <div class="ro"><span class="label">Raw photons</span><span class="v" id="pho">0</span></div>
+          <div class="ro"><span class="label">Capture rate</span><span class="v" id="rate">0.0<small>/s</small></span></div>
+          <div class="ro"><span class="label">Noise temp</span><span class="v" id="temp">18<small>K</small></span><div class="bar" aria-hidden="true"><i id="heatbar"></i><b></b></div></div>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Receiver">
+        <div class="phead"><h2>Receiver</h2><div class="legend label"><span>Your tuning</span><span class="tg">Incoming signal</span></div></div>
+        <canvas id="scope" aria-hidden="true"></canvas>
+        <div class="tuner">
+          <div class="knob" id="knob" role="slider" tabindex="0" aria-label="Tuning dial. Hold to receive, turn to tune." aria-valuemin="1420.300" aria-valuemax="1420.510" aria-valuenow="1420.380"><div class="cap" id="cap"></div></div>
+          <div class="tstat">
+            <span class="led" id="led" data-s="idle">Idle</span>
+            <div class="freq" id="freq">1420.380<small>MHz</small></div>
+            <p class="hint" id="hint">Hold the dial and turn it until your blue wave lines up with the pink one.</p>
+          </div>
+        </div>
+        <div class="switchrow" id="limrow" hidden>
+          <div><strong>Safety limiter</strong><p id="limtext">Cuts the receiver at 105 K. Turn it off and you capture 60% more above that line, but the receiver can burn out.</p></div>
+          <button class="switch" id="lim" type="button" role="switch" aria-checked="true" aria-label="Safety limiter"></button>
+        </div>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="panel" aria-label="Decoder">
+        <div class="phead"><h2>Decoder</h2><span class="label" id="pcount">0 / 7 packets</span></div>
+        <div class="decode" id="decode"></div>
+      </section>
+
+      <section class="panel" id="fundPanel" aria-label="Funding">
+        <div class="phead"><h2>Funding</h2><span class="label" id="repu">Reputation 0</span></div>
+        <p class="teaser" id="fundLocked">Decode all 7 packets and the university will fund the station.</p>
+        <div class="fund" id="fundBody" hidden>
+          <div class="money"><span class="mv" id="money">$0.00</span><span class="label">Grant money</span></div>
+          <div class="frow"><div class="fi"><div class="fn">Daily stipend</div><div class="fm" id="stipMeta"></div></div><button class="btn" id="stipBtn" type="button">Claim</button></div>
+          <div class="frow"><div class="fi"><div class="fn">Write a paper</div><div class="fm" id="paperMeta"></div><div class="prog" id="paperProg" hidden><i></i></div></div><button class="btn" id="paperBtn" type="button">Write</button></div>
+          <span class="label">Grant applications</span>
+          <div class="fund" id="grants"></div>
+        </div>
+      </section>
+
+      <section class="panel" id="crewPanel" aria-label="Crew" hidden>
+        <div class="phead"><h2>Crew</h2><span class="label" id="payroll">Payroll $0/day</span></div>
+        <div class="frow"><div class="fi"><div class="fn">Job listing</div><div class="fm" id="listMeta"></div></div><button class="switch snd" id="listSw" type="button" role="switch" aria-checked="false" aria-label="Job listing"></button></div>
+        <div class="frow"><div class="fi"><div class="fn">Talent scout</div><div class="fm" id="scoutMeta"></div></div><button class="btn ghost" id="scoutBtn" type="button">Hire scout</button></div>
+        <div class="fund" id="inbox"></div>
+        <div class="fund" id="crewList"></div>
+      </section>
+
+      <section class="panel" id="stPanel" aria-label="Stations" hidden>
+        <div class="phead"><h2>Stations</h2><button class="chip" id="buyMode" type="button">Buy ×1</button></div>
+        <span class="label" id="boostTag">Stations collect photons on their own</span>
+        <div class="stations" id="stations"></div>
+      </section>
+
+      <section class="panel" aria-label="Parts">
+        <div class="phead"><h2>Parts bench</h2><span class="label">Spend photons</span></div>
+        <div class="ups" id="ups"></div>
+        <p class="teaser" id="teaser">More parts unlock as packets decode.</p>
+      </section>
+
+      <section class="panel" aria-label="Operator logs">
+        <div class="phead"><h2>Operator logs</h2><span class="label" id="lcount">1 entry</span></div>
+        <div class="logs" id="logs"></div>
+      </section>
+    </div>
+  </div>
+
+  <section class="panel dev" id="dev" hidden aria-label="Test panel">
+    <div class="phead"><h2>Test panel</h2><span class="label">Hidden from players</span></div>
+    <div class="kv" id="devkv"></div>
+    <div class="row">
+      <button class="btn" id="devFree" type="button">Free + instant: off</button>
+      <button class="btn ghost" id="devHour" type="button">Skip 1 hour</button>
+      <button class="btn ghost" id="devDay" type="button">Skip 1 day</button>
+      <button class="btn ghost" id="devMax" type="button">Max all parts</button>
+      <button class="btn ghost" id="devAll" type="button">Unlock all packets</button>
+      <button class="btn ghost" id="devSkip" type="button">Finish current decode</button>
+      <button class="btn ghost" id="devPho" type="button">+500 photons</button>
+      <button class="btn ghost" id="devCash" type="button">+$1 million</button>
+      <button class="btn ghost" id="devClose" type="button">Close</button>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span class="label" id="saved">Auto-saves every 5 s</span>
+    <span class="label" id="ver">AI Edition · council build 0</span>
+    <button class="chip" id="testBtn" type="button">Test tools</button>
+    <div class="confirm" id="resetBox"><button class="chip" id="reset" type="button">Reset run</button></div>
+  </footer>
+</div>
+
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="card">
+    <span class="label eyebrow" id="mEye">Operator log</span>
+    <h2 id="mTitle">Day 1</h2>
+    <div class="body" id="mBody"></div>
+    <div class="actions" id="mActions"></div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="src/data.js"></script>
+<script src="src/save.js"></script>
+<script src="src/audio.js"></script>
+<script src="src/sim.js"></script>
+<script src="src/canvas.js"></script>
+<script src="src/input.js"></script>
+<script src="src/ui.js"></script>
+<script src="src/crew.js"></script>
+<script src="src/boot.js"></script>
