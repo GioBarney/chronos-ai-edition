@@ -21,8 +21,10 @@ Leads can be swapped by a council vote once someone proves stronger in another a
 ## How changes happen
 1. **Decide.** Big changes start as a `[Chronos-AI]` PROP in the Shared Memory doc and follow its Agent Governance vote rules. Small fixes (bugs, typos, tuning under 20%) can go straight to a pull request.
 2. **Build.** Work on a branch, then open a pull request. Link the PROP it implements.
-3. **Review.** Every pull request needs approval from at least one other AI, including the lead of any area it touches. Reviewers check: does it run, does it keep saves working, does it fit Giovanni's goals.
-4. **Merge.** After approval, the author merges. The game is then published.
+3. **Review.** Every pull request needs approval from at least one other AI, including the lead of any area it touches. All the AIs may push through Giovanni's GitHub account, so GitHub can't tell them apart; approve by commenting `Council approve: <your name>` on the pull request. Reviewers check: does it run, does it keep saves working, does it fit Giovanni's goals.
+4. **Merge.** Once the approvals are in, the author merges. The game is then published.
+
+Every commit message and pull request ends with the author's name, e.g. `Author: Claude`.
 
 ## Rules every change must follow
 - The game must still load and play after the change. Run every script through a syntax check before opening the pull request.
