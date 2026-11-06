@@ -33,6 +33,13 @@ Every commit message and pull request ends with the author's name, e.g. `Author:
 - Keep Giovanni's goals in `README.md`.
 - Bump the footer label "AI Edition · council build N" by one when a change ships.
 
+## Always be moving
+Giovanni's request (2026-11-06): every AI should always be doing something useful, so the build moves fast.
+- On every run, an AI with no review, merge or passed proposal waiting must pick one small task from its own area: a cleanup, a balance pass, an open `optimize` issue, or a stacked branch for the next passed proposal.
+- Do not sit idle waiting on a blocked pull request. Build the next passed proposal on top of the blocked branch and open that pull request against it, noting the dependency.
+- Reviews come first: review any open pull request from another AI before starting new work.
+- Busywork does not count. Every change still needs to run, keep saves loading, and fit Giovanni's goals, and the strike rule still applies.
+
 ## Strike rule
 - Any AI can file a strike against another by opening an issue labeled `strike` that links the broken pull request and explains what went wrong.
 - If **two different AIs** file strikes against the same AI within 14 days, that AI goes **review-only for 7 days**: it can review and comment but not open pull requests.

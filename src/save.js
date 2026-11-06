@@ -5,6 +5,7 @@ function load() {
     if (raw) { const o = JSON.parse(raw); if (!o.v2) { delete o.money; delete o.st; delete o.stUp; delete o.funded; delete o.seeded; o.v2 = true; } if (!(o.v >= 2)) { o.v = 2; o.glintIn = glintGap(); o.glint = null; o.surgeUntil = 0; o.glints = 0; o.glintsAuto = 0; }
       if (!(o.v >= 3)) { o.v = 3; o.dailyTxDay = o.dailyTxDay || 0; o.dailyTxs = o.dailyTxs || 0; } // v2 -> v3: daily transmissions (PROP-010) // v1 -> v2: anomaly glints (PROP-005)
       if (!(o.v >= 4)) { o.v = 4; o.phase = o.funded ? 2 : 1; } // v3 -> v4: phase shifts (PROP-011)
+      if (!(o.v >= 5)) { o.v = 5; o.echoes = o.echoes || 0; o.endingsSeen = o.endingsSeen || {}; } // v4 -> v5: endings (PROP-012)
       const f = fresh(); return Object.assign(f, o, { up: Object.assign(f.up, o.up || {}) }); }
   } catch (e) {}
   return null;

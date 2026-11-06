@@ -141,7 +141,7 @@ function updateUI(info, now) {
   renderCrew(now);
   renderFunding(now);
   renderStations();
-  renderDecode(now); renderDailyTx(now); renderPhase(); renderUps(); renderLogs();
+  renderDecode(now); renderDailyTx(now); renderPhase(); renderEndings(); renderUps(); renderLogs();
   if (!$('dev').hidden) $('devkv').textContent = `test mode ${s.free ? 'on' : 'off'} · caution ${s.caution.toFixed(1)} · risk ${s.risk.toFixed(1)} · target ${info.tgt.toFixed(4)} MHz · window ±${(info.band * 1000).toFixed(1)} kHz`;
 }
 function buildStations() {
@@ -293,3 +293,29 @@ function renderPhase() {
 }
 $('psBtn').onclick = () => { if (!canPhase3()) return; if (!s.free) { s.photons -= PHASE3_PHOTONS; s.money -= PHASE3_MONEY; }
   s.phase = 3; ensureAudio(); sfx.decoded(); toast('Phase III: the Deep-Time Array is online. Stations run 2\u00d7 faster.'); save(); renderPhase(); };
+
+/* the four endings + run telemetry scorecard (PROP-012) */
+const endingAvailable = e => ((s.phase || 1) >= 3 && e.id !== 'secret' || (e.id === 'secret' && s.packet >= 1)) && e.ok();
+function scorecardText() {
+  const days = Math.max(1, dayNum(Date.now()));
+  return `Days: ${days}\nTotal photons: ${big(s.total)}\nPackets decoded: ${s.packet} / 7\nDaily transmissions: ${s.dailyTxs || 0}\nGlints caught: ${s.glints || 0}\nCrew: ${(s.crew || []).length}\nEchoes: ${s.echoes || 0}`;
+}
+function openEnding(e) {
+  const first = !s.endingsSeen[e.id];
+  openModal({ eyebrow: 'Ending \u00b7 ' + e.name, title: e.name, body: e.text + '\n\nRun telemetry\n' + scorecardText(),
+    actions: [['Continue free play', () => { if (first) { s.endingsSeen[e.id] = Date.now(); s.echoes = (s.echoes || 0) + e.echoes; }
+      s.free = true; closeModal(); save(); $('endingsBox').dataset.k = ''; toast(first && e.echoes ? `+${e.echoes} Echo${e.echoes > 1 ? 'es' : ''} kept for a future loop.` : 'Free play on. Nothing is lost.'); }, 'primary'],
+      ['Not yet', closeModal]] });
+  $('mTitle').insertAdjacentHTML('afterbegin', texImgHTML('ending_' + e.id, e.name, 'anomaly'));
+}
+function renderEndings() {
+  const box = $('endingsBox'), ph = s.phase || 1, secret = s.packet >= 1 && ENDINGS[3].ok();
+  box.hidden = !(ph >= 3 || secret || Object.keys(s.endingsSeen || {}).length); if (box.hidden) return;
+  const k = ENDINGS.map(e => (endingAvailable(e) ? 1 : 0) + (s.endingsSeen[e.id] ? 'S' : '')).join(',');
+  if (box.dataset.k === k) return; box.dataset.k = k;
+  $('endText').textContent = 'The run can end four ways. Ready endings are lit; the rest are hints.';
+  const w = $('endBtns'); w.innerHTML = '';
+  ENDINGS.forEach(e => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn' + (s.endingsSeen[e.id] ? ' done' : '');
+    const ready = endingAvailable(e); b.textContent = ready || s.endingsSeen[e.id] ? e.name : '???'; b.disabled = !ready && !s.endingsSeen[e.id]; b.title = ready ? 'Play this ending' : e.hint;
+    b.onclick = () => openEnding(e); w.appendChild(b); });
+}

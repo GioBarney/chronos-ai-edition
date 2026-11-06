@@ -86,7 +86,7 @@ const surgeOn = now => now < s.surgeUntil;
 // photons a full surge adds over 60 s at full clarity (the x3 minus the x1 you'd get anyway)
 const glintValue = () => (SURGE_MUL - 1) * (baseRate() + passiveRate() + operatorRate()) * SURGE_MS / 1000;
 const fresh = () => ({
-  v: 4, phase: 1, startedAt: Date.now(), lastSave: Date.now(),
+  v: 5, phase: 1, echoes: 0, endingsSeen: {}, startedAt: Date.now(), lastSave: Date.now(),
   photons: 0, total: 0, clarity: 0, heat: 0,
   tuned: 1420.380, knobAngle: 0, drift: 0,
   up: { tuner: 0, lens: 0, horn: 0, lna: 0, sink: 0, tape: 0 },
@@ -103,6 +103,22 @@ const DAILY_TX = [
   'Someone hums the shift-change tune. You never told anyone about the tune.',
   'A long pause. Then: "Do not trust the quiet hours. Trust 1420.405."',
   'The signal thanks you, in your own handwriting somehow. 0x1420.',
+];
+/* The four endings (PROP-012). Secret corridor: tune near 1420.336 MHz (the 0x0.036 clue) after logging 3 daily transmissions. */
+const SECRET_MHZ = 1420.336, SECRET_TOL = 0.004;
+const ENDINGS = [
+  { id: 'bureaucrat', name: 'The Bureaucrat', echoes: 0, hint: 'File the paperwork. Five papers or five careful releases.',
+    ok: () => s.papers >= 5 || s.caution >= 5,
+    text: 'You file everything in triplicate. The signal waits, politely, for approval that never comes. The grant renews itself forever. Nobody ever finishes reading your report, and the array hums on in a very clean building.' },
+  { id: 'collapse', name: 'The Collapse', echoes: 0, hint: 'Run hot with the limiter off.',
+    ok: () => !!s.limiterOff && s.heat >= 90,
+    text: 'The limiter is off and the dish is glowing. For one long second the carrier and the receiver agree on everything. Then the lights of Hollow Ridge go out, one row at a time, and the breathing stops.' },
+  { id: 'ouroboros', name: 'The Ouroboros', echoes: 1, hint: 'Hold the signal near perfect clarity with an Interferometer online.',
+    ok: () => s.clarity >= 95 && s.st.interf.n >= 1,
+    text: 'The date in the header was always today. You decode the sender field and it is your callsign, and the callsign is you, and the signal is the thing you are about to send. You press the key. Day 1 begins again, and you remember it.' },
+  { id: 'secret', name: 'The 137 Corridor', echoes: 2, hint: 'Something is hidden between the numbers.',
+    ok: () => (s.dailyTxs || 0) >= 3 && Math.abs(s.tuned - SECRET_MHZ) <= SECRET_TOL,
+    text: 'You stop chasing the hydrogen line and let the dial settle where the voice kept asking. A second, quieter carrier opens. It is not a message. It is a door someone left unlocked for you, a long time from now.' },
 ];
 const PHASE3_PHOTONS = 5e6, PHASE3_MONEY = 250000;
 const DAILY_TX_PHOTON_MIN = 600, DAILY_TX_CLARITY = 25;
