@@ -201,6 +201,11 @@ canvas{display:block;width:100%;max-width:100%}
 .dtx .btn{justify-self:start;padding:10px 14px;font-size:14px}
 .dtx.hex-clue-row{border-color:var(--anomaly)}
 
+.endings-box{border-color:var(--anomaly)}
+.scorecard{white-space:pre-line;font-variant-numeric:tabular-nums;border-top:1px solid var(--line);padding-top:10px}
+.end-btns{display:flex;flex-wrap:wrap;gap:8px}
+.end-btns .btn{padding:10px 14px;font-size:14px}
+.end-btns .btn.done{opacity:.7}
 .phase-tag{display:block;color:var(--signal)}
 [data-phase="3"] .phase-tag{color:var(--anomaly)}
 .phase-shift-box{border-color:var(--anomaly)}
