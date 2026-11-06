@@ -100,7 +100,7 @@ function renderLogs() {
   if (rt.logSig === s.packet) return; rt.logSig = s.packet;
   const box = $('logs'); box.innerHTML = '';
   for (let i = s.packet; i >= 0; i--) { const L = LOGS[i]; const b = document.createElement('button'); b.type = 'button';
-    b.innerHTML = `<span class="t"></span><span class="s"></span>`; b.querySelector('.t').textContent = L.title; b.querySelector('.s').textContent = L.short;
+    b.innerHTML = `<span class="t"></span><span class="s"></span>`; b.querySelector('.t').textContent = L.title; b.querySelector('.s').textContent = L.short; b.insertAdjacentHTML('afterbegin', texImgHTML('pkt_' + Math.min(i, 6), L.title, 'signal')); if (/\|0x|137\.036/.test(L.body)) b.classList.add('hex-clue-row');
     b.onclick = () => openLog(i, false); box.appendChild(b); }
   $('lcount').textContent = `${s.packet + 1} ${s.packet ? 'entries' : 'entry'}`;
 }
@@ -134,6 +134,7 @@ function updateUI(info, now) {
       body: "The board read your Week 1 logs. Nobody believes it's what you think it is, but nobody can explain it either.\n\nThey've approved $50,000 for equipment. That's enough for your first data logger, which collects photons without you on the dial.\n\nKeep the money coming with papers, grant applications and your daily stipend.",
       actions: [['Buy equipment', () => { closeModal(); $('fundPanel').scrollIntoView({ behavior: 'smooth', block: 'start' }); }]] });
   }
+  syncBuild3Visuals(info);
   processPaydays(now); resolveCrew(now); autoCrew();
   if (s.funded && !s.chequeMet && (s.heat >= 80 || rt.limiterCut || info.tripped) && $('modal').hidden) chequeArrives();
   resolveFunding(now);
@@ -147,10 +148,10 @@ function buildStations() {
   const box = $('stations'); box.innerHTML = ''; rt.stEl = {};
   STATIONS.forEach(st => {
     const row = document.createElement('div'); row.className = 'st'; row.style.setProperty('--c', `var(--${st.color})`);
-    row.innerHTML = `<button class="st-run" type="button"></button><div class="st-main"><div class="st-top"><span class="st-name"></span><span class="st-ms"></span></div><button class="st-bar" type="button"><i></i><span class="st-pay"></span><span class="st-time"></span></button></div><div class="st-acts"><button class="btn st-buy" type="button"></button><button class="btn ghost st-up" type="button"></button></div>`;
-    const e = { row, circ: row.querySelector('.st-run'), name: row.querySelector('.st-name'), ms: row.querySelector('.st-ms'), bar: row.querySelector('.st-bar'),
+    row.innerHTML = `<button class="st-run" type="button"></button><div class="st-main"><div class="st-top"><span class="st-name"></span><span class="st-ms"></span></div><div class="st-pips" aria-hidden="true"></div><button class="st-bar" type="button"><i></i><span class="st-pay"></span><span class="st-time"></span></button></div><div class="st-acts"><button class="btn st-buy" type="button"></button><button class="btn ghost st-up" type="button"></button></div>`;
+    const e = { row, circ: row.querySelector('.st-run'), name: row.querySelector('.st-name'), ms: row.querySelector('.st-ms'), pips: row.querySelector('.st-pips'), bar: row.querySelector('.st-bar'),
       fill: row.querySelector('.st-bar i'), pay: row.querySelector('.st-pay'), time: row.querySelector('.st-time'), buy: row.querySelector('.st-buy'), up: row.querySelector('.st-up'), acts: row.querySelector('.st-acts') };
-    e.name.textContent = st.name; e.circ.setAttribute('aria-label', 'Run ' + st.name);
+    e.name.textContent = st.name; e.name.insertAdjacentHTML('afterbegin', texImgHTML('st_' + st.id, st.name, st.color)); e.circ.setAttribute('aria-label', 'Run ' + st.name);
     e.circ.onclick = () => runStation(st); e.bar.onclick = () => runStation(st); e.buy.onclick = () => buyStation(st); e.up.onclick = () => upgradeStation(st);
     rt.stEl[st.id] = e; box.appendChild(row);
   });
@@ -181,7 +182,7 @@ function renderStations() {
     e.row.hidden = false; e.row.classList.remove('locked'); e.circ.disabled = !o.n; e.bar.disabled = !o.n; e.acts.hidden = false;
     e.circ.textContent = o.n;
     if (o.n) est += payout(st) / cycleSecs(st);
-    const nm = nextMs(o.n); e.ms.textContent = nm ? `${o.n}/${nm} for 2\u00d7 speed` : 'Max speed';
+    const nm = nextMs(o.n); e.pips.innerHTML = milestonePipsHTML(o.n); e.ms.textContent = nm ? `${o.n}/${nm} for 2\u00d7 speed` : 'Max speed';
     const k = buyCount(st), c = costN(st, k);
     e.buy.textContent = `Buy \u00d7${k} \u00b7 ${money(c)}`;
     e.buy.disabled = s.money < c || (s.buyMode === 'max' && !s.free && maxAfford(st) === 0);
@@ -246,3 +247,20 @@ function renderStationBars() { if (!rt.stEl) return; STATIONS.forEach(st => { co
 $('buyMode').onclick = () => { s.buyMode = s.buyMode === '1' ? '10' : s.buyMode === '10' ? 'max' : '1'; sfx.click(); save(); };
 
 $('glintBtn').onclick = catchGlint;
+
+/* ---------- council build 3: texture slots + UI instrumentation (PROP-009) ---------- */
+// Brena's swappable art: drop assets/slots/<slot>.png to replace any placeholder, no code changes.
+const TEX_COLORS = { signal: '#4fd8ff', ok: '#5ff2b4', heat: '#ffad4a', anomaly: '#ff5fa8' };
+const makePlaceholderSVG = (label, color) => {
+  const c = TEX_COLORS[color] || TEX_COLORS.signal, ch = String(label || '?').trim().charAt(0).toUpperCase().replace(/[<>&"']/g, '?');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="#1a1f4a" stroke="${c}" stroke-width="3"/><circle cx="24" cy="24" r="9" fill="${c}" opacity=".25"/><text x="24" y="30" text-anchor="middle" font-family="sans-serif" font-size="17" fill="${c}">${ch}</text></svg>`;
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+};
+const texImgHTML = (slot, label, color) => {
+  const fb = makePlaceholderSVG(label, color), safe = String(slot).replace(/[^\w-]/g, '');
+  return `<img class="tex" alt="" width="22" height="22" src="assets/slots/${safe}.png" onerror="this.onerror=null;this.src=this.dataset.fb" data-fb="${fb}">`;
+};
+const milestonePipsHTML = n => MILESTONES.map(m => `<i class="${n >= m ? 'on' : ''}" title="${m} owned: 2\u00d7 speed"></i>`).join('');
+function syncBuild3Visuals(info) {
+  knob.dataset.state = info.tripped ? 'tripped' : info.locked ? 'locked' : info.receiving ? 'receiving' : 'idle';
+}
