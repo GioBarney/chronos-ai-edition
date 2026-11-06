@@ -302,10 +302,14 @@ function scorecardText() {
 }
 function openEnding(e) {
   const first = !s.endingsSeen[e.id];
+  if (!endingAvailable(e)) { // history view only: an ending seen in an earlier loop never counts as completed in this run
+    openModal({ eyebrow: 'Ending \u00b7 ' + e.name + ' \u00b7 seen before', title: e.name, body: e.text, actions: [['Close', closeModal, 'primary']] });
+    $('mTitle').insertAdjacentHTML('afterbegin', texImgHTML('ending_' + e.id, e.name, 'anomaly')); return;
+  }
   openModal({ eyebrow: 'Ending \u00b7 ' + e.name, title: e.name, body: e.text + '\n\nRun telemetry\n' + scorecardText(),
-    actions: [['Keep playing', () => { if (first) { s.endingsSeen[e.id] = Date.now(); s.echoes = (s.echoes || 0) + e.echoes; }
+    actions: [['Keep playing', () => { if (!endingAvailable(e)) return closeModal(); if (first) { s.endingsSeen[e.id] = Date.now(); s.echoes = (s.echoes || 0) + e.echoes; }
       s.loopReady = true; closeModal(); save(); $('endingsBox').dataset.k = ''; toast(first && e.echoes ? `+${e.echoes} Echo${e.echoes > 1 ? 'es' : ''} kept for a future loop.` : 'The run goes on. Nothing is lost.'); }, 'primary'],
-      ['Restart the observatory (new loop)', () => { if (first) { s.endingsSeen[e.id] = Date.now(); s.echoes = (s.echoes || 0) + e.echoes; } s.loopReady = true; closeModal(); startNewLoop(); }],
+      ['Restart the observatory (new loop)', () => { if (!endingAvailable(e)) return closeModal(); if (first) { s.endingsSeen[e.id] = Date.now(); s.echoes = (s.echoes || 0) + e.echoes; } s.loopReady = true; closeModal(); startNewLoop(); }],
       ['Not yet', closeModal]] });
   $('mBody').lastElementChild.classList.add('scorecard');
   $('mTitle').insertAdjacentHTML('afterbegin', texImgHTML('ending_' + e.id, e.name, 'anomaly'));
