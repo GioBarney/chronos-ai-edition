@@ -1,6 +1,7 @@
 'use strict';
 /* ---------- simulation ---------- */
 function tick(dt, now) {
+  if (s.funded && (s.phase || 1) < 2) s.phase = 2;
   s.drift += dt * driftMul();
   const tgt = target(), errS = s.tuned - tgt, err = Math.abs(errS), band = bandW();
   const tripped = now < s.tripUntil;
