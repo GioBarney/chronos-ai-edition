@@ -306,6 +306,7 @@ function openEnding(e) {
     actions: [['Continue free play', () => { if (first) { s.endingsSeen[e.id] = Date.now(); s.echoes = (s.echoes || 0) + e.echoes; }
       s.free = true; closeModal(); save(); $('endingsBox').dataset.k = ''; toast(first && e.echoes ? `+${e.echoes} Echo${e.echoes > 1 ? 'es' : ''} kept for a future loop.` : 'Free play on. Nothing is lost.'); }, 'primary'],
       ['Not yet', closeModal]] });
+  $('mBody').lastElementChild.classList.add('scorecard');
   $('mTitle').insertAdjacentHTML('afterbegin', texImgHTML('ending_' + e.id, e.name, 'anomaly'));
 }
 function renderEndings() {
