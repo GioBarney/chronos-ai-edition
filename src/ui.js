@@ -303,8 +303,8 @@ function scorecardText() {
 function openEnding(e) {
   const first = !s.endingsSeen[e.id];
   openModal({ eyebrow: 'Ending \u00b7 ' + e.name, title: e.name, body: e.text + '\n\nRun telemetry\n' + scorecardText(),
-    actions: [['Continue free play', () => { if (first) { s.endingsSeen[e.id] = Date.now(); s.echoes = (s.echoes || 0) + e.echoes; }
-      s.free = true; closeModal(); save(); $('endingsBox').dataset.k = ''; toast(first && e.echoes ? `+${e.echoes} Echo${e.echoes > 1 ? 'es' : ''} kept for a future loop.` : 'Free play on. Nothing is lost.'); }, 'primary'],
+    actions: [['Keep playing', () => { if (first) { s.endingsSeen[e.id] = Date.now(); s.echoes = (s.echoes || 0) + e.echoes; }
+      closeModal(); save(); $('endingsBox').dataset.k = ''; toast(first && e.echoes ? `+${e.echoes} Echo${e.echoes > 1 ? 'es' : ''} kept for a future loop.` : 'The run goes on. Nothing is lost.'); }, 'primary'],
       ['Not yet', closeModal]] });
   $('mBody').lastElementChild.classList.add('scorecard');
   $('mTitle').insertAdjacentHTML('afterbegin', texImgHTML('ending_' + e.id, e.name, 'anomaly'));
