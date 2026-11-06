@@ -141,7 +141,7 @@ function updateUI(info, now) {
   renderCrew(now);
   renderFunding(now);
   renderStations();
-  renderDecode(now); renderUps(); renderLogs();
+  renderDecode(now); renderDailyTx(now); renderUps(); renderLogs();
   if (!$('dev').hidden) $('devkv').textContent = `test mode ${s.free ? 'on' : 'off'} · caution ${s.caution.toFixed(1)} · risk ${s.risk.toFixed(1)} · target ${info.tgt.toFixed(4)} MHz · window ±${(info.band * 1000).toFixed(1)} kHz`;
 }
 function buildStations() {
@@ -264,3 +264,20 @@ const milestonePipsHTML = n => MILESTONES.map(m => `<i class="${n >= m ? 'on' : 
 function syncBuild3Visuals(info) {
   knob.dataset.state = info.tripped ? 'tripped' : info.locked ? 'locked' : info.receiving ? 'receiving' : 'idle';
 }
+
+/* daily transmissions (PROP-010) */
+function renderDailyTx(now) {
+  const box = $('dailyTxBox'), day = dayNum(now), ready = s.packet >= 1 && (s.free || day > s.dailyTxDay);
+  box.hidden = s.packet < 1;
+  if (box.hidden) return;
+  const i = (s.dailyTxs || 0) % DAILY_TX.length;
+  if (box.dataset.k !== i + '|' + ready) { box.dataset.k = i + '|' + ready;
+    const t = DAILY_TX[i].replace(/\{(.+?)\|(.+?)\}/g, '$1');
+    $('dtxText').textContent = ready ? t : 'Logged for today. The next fragment arrives tomorrow.'; box.classList.toggle('hex-clue-row', ready && /0x|137/.test(DAILY_TX[i])); }
+  $('dtxBtn').disabled = !ready; $('dtxBtn').hidden = !ready;
+}
+$('dtxBtn').onclick = () => { const now = Date.now(); if (s.packet < 1 || !(s.free || dayNum(now) > s.dailyTxDay)) return;
+  s.dailyTxDay = dayNum(now); s.dailyTxs = (s.dailyTxs || 0) + 1; ensureAudio(); sfx.lock();
+  if (s.clarity < 90) { s.clarity = Math.min(100, s.clarity + DAILY_TX_CLARITY); toast(`Transmission logged. Signal clarity +${DAILY_TX_CLARITY}.`); }
+  else { const p = Math.max(DAILY_TX_PHOTON_MIN, rt.rate * 600); s.photons += p; s.total += p; toast(`Transmission logged. +${big(p)} photons.`); }
+  $('dailyTxBox').dataset.k = ''; save(); };

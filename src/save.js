@@ -2,7 +2,8 @@
 /* ---------- save ---------- */
 function load() {
   try { const raw = localStorage.getItem(KEY);
-    if (raw) { const o = JSON.parse(raw); if (!o.v2) { delete o.money; delete o.st; delete o.stUp; delete o.funded; delete o.seeded; o.v2 = true; } if (!(o.v >= 2)) { o.v = 2; o.glintIn = glintGap(); o.glint = null; o.surgeUntil = 0; o.glints = 0; o.glintsAuto = 0; } // v1 -> v2: anomaly glints (PROP-005)
+    if (raw) { const o = JSON.parse(raw); if (!o.v2) { delete o.money; delete o.st; delete o.stUp; delete o.funded; delete o.seeded; o.v2 = true; } if (!(o.v >= 2)) { o.v = 2; o.glintIn = glintGap(); o.glint = null; o.surgeUntil = 0; o.glints = 0; o.glintsAuto = 0; }
+      if (!(o.v >= 3)) { o.v = 3; o.dailyTxDay = o.dailyTxDay || 0; o.dailyTxs = o.dailyTxs || 0; } // v2 -> v3: daily transmissions (PROP-010) // v1 -> v2: anomaly glints (PROP-005)
       const f = fresh(); return Object.assign(f, o, { up: Object.assign(f.up, o.up || {}) }); }
   } catch (e) {}
   return null;

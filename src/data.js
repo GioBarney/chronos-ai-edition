@@ -86,14 +86,25 @@ const surgeOn = now => now < s.surgeUntil;
 // photons a full surge adds over 60 s at full clarity (the x3 minus the x1 you'd get anyway)
 const glintValue = () => (SURGE_MUL - 1) * (baseRate() + passiveRate() + operatorRate()) * SURGE_MS / 1000;
 const fresh = () => ({
-  v: 2, startedAt: Date.now(), lastSave: Date.now(),
+  v: 3, startedAt: Date.now(), lastSave: Date.now(),
   photons: 0, total: 0, clarity: 0, heat: 0,
   tuned: 1420.380, knobAngle: 0, drift: 0,
   up: { tuner: 0, lens: 0, horn: 0, lna: 0, sink: 0, tape: 0 },
   packet: 0, decode: null, limiterOff: false, tripUntil: 0,
   caution: 0, risk: 0, seenIntro: false, weekDone: false, muted: false, free: false, mix: defaultMix(), money: 0, buyMode: '1', st: freshSt(), stUp: freshUpSt(), funded: false, papers: 0, paper: null, apps: {}, stipendDay: 0, v2: true, crew: [], inbox: [], listing: false, nextApp: 0, scout: null, scouts: 0, payDay: 0, chequeMet: false, wseq: 1,
-  glintIn: glintGap(), glint: null, surgeUntil: 0, glints: 0, glintsAuto: 0,
+  glintIn: glintGap(), glint: null, surgeUntil: 0, glints: 0, glintsAuto: 0, dailyTxDay: 0, dailyTxs: 0,
 });
+/* Daily transmissions (PROP-010): one short fragment per real day, rotating. Hex clues point at 137.036 MHz. */
+const DAILY_TX = [
+  'Carrier steady. A voice, very tired, counts backwards from {137|0x89}.',
+  'The message repeats, but a word is different each time. Your word.',
+  'Static, then a kettle whistling. Hollow Ridge has no kettle.',
+  'It is asking the dial to settle near one-three-seven, and then a decimal. 0x0.036.',
+  'Someone hums the shift-change tune. You never told anyone about the tune.',
+  'A long pause. Then: "Do not trust the quiet hours. Trust 1420.405."',
+  'The signal thanks you, in your own handwriting somehow. 0x1420.',
+];
+const DAILY_TX_PHOTON_MIN = 600, DAILY_TX_CLARITY = 25;
 let s = fresh();
 const rt = { holding: false, lastAng: null, limiterCut: false, cautionArmed: false, prevLocked: false,
   lastChime: 0, openW: new Set(), crewSig: '', popAcc: 0, lastPop: 0, lastPreview: 0, lastWarn: 0, lastClick: 0, lastUI: 0, rate: 0, verTaps: [], upSig: '', logSig: -1 };
