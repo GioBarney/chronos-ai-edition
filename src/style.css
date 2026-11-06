@@ -195,3 +195,8 @@ canvas{display:block;width:100%;max-width:100%}
 .wk.cheque-card{border-color:var(--heat);box-shadow:0 0 14px -8px var(--heat)}
 #logs button.hex-clue-row{border-color:var(--anomaly)}
 #logs button .tex{float:left;margin-top:2px}
+/* daily transmissions (PROP-010) */
+.dtx{display:grid;gap:8px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--void)}
+.dtx p{margin:0;font-size:14px;color:var(--ink)}
+.dtx .btn{justify-self:start;padding:10px 14px;font-size:14px}
+.dtx.hex-clue-row{border-color:var(--anomaly)}
