@@ -6,6 +6,7 @@ function load() {
       if (!(o.v >= 3)) { o.v = 3; o.dailyTxDay = o.dailyTxDay || 0; o.dailyTxs = o.dailyTxs || 0; } // v2 -> v3: daily transmissions (PROP-010) // v1 -> v2: anomaly glints (PROP-005)
       if (!(o.v >= 4)) { o.v = 4; o.phase = o.funded ? 2 : 1; } // v3 -> v4: phase shifts (PROP-011)
       if (!(o.v >= 5)) { o.v = 5; o.echoes = o.echoes || 0; o.endingsSeen = o.endingsSeen || {}; } // v4 -> v5: endings (PROP-012)
+      if (!(o.v >= 6)) { o.v = 6; o.loops = o.loops || 0; o.echoSpent = o.echoSpent || 0; o.echoUp = o.echoUp || {}; } // v5 -> v6: echoes prestige (PROP-013)
       const f = fresh(); return Object.assign(f, o, { up: Object.assign(f.up, o.up || {}) }); }
   } catch (e) {}
   return null;
@@ -22,7 +23,7 @@ function catchUp(gapMs) {
   s.heat = Math.max(0, s.heat - 9 * coolRate() * sec);
   s.clarity = Math.max(0, s.clarity - 5 * lnaDecay() * sec);
   const before = s.photons;
-  const p = (passiveRate() + operatorRate()) * sec;
+  const p = (passiveRate() + operatorRate()) * sec * echoMul();
   s.photons += p; s.total += p;
   for (const st of STATIONS) { const o = s.st[st.id]; if (!o.n) continue;
     if (s.funded && runnerOf(st.id)) { const t = o.p + sec / cycleSecs(st), cyc = Math.floor(t); o.p = t - cyc; o.run = true;

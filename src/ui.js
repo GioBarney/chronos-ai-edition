@@ -129,7 +129,7 @@ function updateUI(info, now) {
   $('limrow').hidden = s.packet < 2;
   $('lim').setAttribute('aria-checked', String(!s.limiterOff));
   if (s.packet >= 7 && !s.funded && $('modal').hidden) {
-    s.funded = true; s.money += 50000; sfx.decoded(); save();
+    s.funded = true; s.money += 50000 + (s.pendingLoopMoney || 0); s.pendingLoopMoney = 0; sfx.decoded(); save();
     openModal({ eyebrow: 'Grant awarded', title: '$50,000 from the university',
       body: "The board read your Week 1 logs. Nobody believes it's what you think it is, but nobody can explain it either.\n\nThey've approved $50,000 for equipment. That's enough for your first data logger, which collects photons without you on the dial.\n\nKeep the money coming with papers, grant applications and your daily stipend.",
       actions: [['Buy equipment', () => { closeModal(); $('fundPanel').scrollIntoView({ behavior: 'smooth', block: 'start' }); }]] });
@@ -141,7 +141,7 @@ function updateUI(info, now) {
   renderCrew(now);
   renderFunding(now);
   renderStations();
-  renderDecode(now); renderDailyTx(now); renderPhase(); renderEndings(); renderUps(); renderLogs();
+  renderDecode(now); renderDailyTx(now); renderPhase(); renderEndings(); renderEchoes(); renderUps(); renderLogs();
   if (!$('dev').hidden) $('devkv').textContent = `test mode ${s.free ? 'on' : 'off'} · caution ${s.caution.toFixed(1)} · risk ${s.risk.toFixed(1)} · target ${info.tgt.toFixed(4)} MHz · window ±${(info.band * 1000).toFixed(1)} kHz`;
 }
 function buildStations() {
@@ -305,6 +305,7 @@ function openEnding(e) {
   openModal({ eyebrow: 'Ending \u00b7 ' + e.name, title: e.name, body: e.text + '\n\nRun telemetry\n' + scorecardText(),
     actions: [['Keep playing', () => { if (first) { s.endingsSeen[e.id] = Date.now(); s.echoes = (s.echoes || 0) + e.echoes; }
       closeModal(); save(); $('endingsBox').dataset.k = ''; toast(first && e.echoes ? `+${e.echoes} Echo${e.echoes > 1 ? 'es' : ''} kept for a future loop.` : 'The run goes on. Nothing is lost.'); }, 'primary'],
+      ['Keep playing and begin a new loop', () => { if (first) { s.endingsSeen[e.id] = Date.now(); s.echoes = (s.echoes || 0) + e.echoes; } closeModal(); startNewLoop(); }],
       ['Not yet', closeModal]] });
   $('mBody').lastElementChild.classList.add('scorecard');
   $('mTitle').insertAdjacentHTML('afterbegin', texImgHTML('ending_' + e.id, e.name, 'anomaly'));
@@ -320,3 +321,32 @@ function renderEndings() {
     const ready = endingAvailable(e); b.textContent = ready || s.endingsSeen[e.id] ? e.name : '???'; b.disabled = !ready && !s.endingsSeen[e.id]; b.title = ready ? 'Play this ending' : e.hint;
     b.onclick = () => openEnding(e); w.appendChild(b); });
 }
+
+/* echoes prestige + new game+ loop (PROP-013) */
+function startNewLoop() {
+  if (!Object.keys(s.endingsSeen || {}).length) return;
+  const keep = { mix: s.mix, echoes: (s.echoes || 0) + 1, echoSpent: s.echoSpent || 0, echoUp: s.echoUp || {}, endingsSeen: s.endingsSeen, loops: (s.loops || 0) + 1, seenIntro: true };
+  s = Object.assign(fresh(), keep);
+  s.photons = 500 * echoLv('memory'); s.total = s.photons;
+  s.pendingLoopMoney = 25000 * echoLv('fund');
+  rt.upSig = ''; rt.logSig = -1; rt.limiterCut = false; rt.cautionArmed = false; rt.openW = new Set(); rt.crewSig = '';
+  $('decode').dataset.k = ''; $('endingsBox').dataset.k = ''; $('echoesBox').dataset.k = '';
+  save(); toast(`Loop ${s.loops} begins. Week 1 again, and the signal remembers: +${Math.round(ECHO_BONUS * 100)}% output per Echo (now x${echoMul().toFixed(2)}).`);
+}
+function renderEchoes() {
+  const tag = $('echoesTag'), box = $('echoesBox'), has = (s.echoes || 0) > 0 || (s.loops || 0) > 0, seen = Object.keys(s.endingsSeen || {}).length > 0;
+  tag.hidden = !has; if (has) tag.textContent = `Loop ${s.loops || 0} \u00b7 ${s.echoes} Echo${s.echoes === 1 ? '' : 'es'} \u00b7 x${echoMul().toFixed(2)} output`;
+  box.hidden = !(has || seen); if (box.hidden) return;
+  const k = [s.echoes, s.echoSpent, s.loops, seen, ECHO_UPG.map(u => echoLv(u.id)).join('')].join('|');
+  if (box.dataset.k === k) return; box.dataset.k = k;
+  $('echoText').textContent = `Echoes carry across loops: each one adds ${Math.round(ECHO_BONUS * 100)}% to photon and station output. ${echoFree()} to spend. Beginning a new loop resets the run to Week 1 and grants +1 Echo.`;
+  const w = $('echoUpgs'); w.innerHTML = '';
+  ECHO_UPG.forEach(u => { const lv = echoLv(u.id), maxed = lv >= ECHO_MAX_LV, c = echoCost(u.id), b = document.createElement('button');
+    b.type = 'button'; b.className = 'btn ghost'; b.disabled = maxed || echoFree() < c; b.title = u.desc(lv);
+    b.textContent = maxed ? `${u.name} \u00b7 max` : `${u.name} ${lv}/${ECHO_MAX_LV} \u00b7 ${c} Echo${c > 1 ? 'es' : ''}`;
+    b.onclick = () => { if (echoFree() < c || lv >= ECHO_MAX_LV) return; s.echoSpent += c; s.echoUp[u.id] = lv + 1; box.dataset.k = ''; save(); toast(u.desc(lv + 1).replace(/\(now .*\)\.?$/, '').trim()); };
+    w.appendChild(b); });
+  $('loopBtn').hidden = !seen;
+}
+$('loopBtn').onclick = () => openModal({ eyebrow: 'New loop', title: 'Begin a new loop?', body: 'The observatory resets to Week 1. You keep your Echoes, Echo upgrades and the endings you have seen.\n\nYou gain +1 Echo for the loop.',
+  actions: [['Begin loop', () => { closeModal(); startNewLoop(); }, 'primary'], ['Not yet', closeModal]] });
