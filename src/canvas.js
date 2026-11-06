@@ -79,10 +79,10 @@ function drawBuild8SkyAndScopeCues(ctx, W, H, u, t) {
 }
 function drawInterferometerBaseline(ctx, W, H, u, t) {
   if ((s.phase || 1) < 3 || !s.st.array || s.st.array.n < 1) return;
-  const ground = H * 0.84, x1 = W * 0.5, x2 = W * (0.5 + Math.min(2, Math.floor(s.st.array.n / 25)) * 0.09);
-  if (x2 <= x1) return;
+  // visible from array #1: runs from the main dish pedestal to the farthest secondary dish (grows with array count)
+  const ground = H * 0.84, x1 = W * 0.3, x2 = W * (0.5 + Math.min(2, Math.floor(s.st.array.n / 25)) * 0.09);
   ctx.save(); ctx.strokeStyle = C.anomaly; ctx.lineWidth = 1 * u; ctx.globalAlpha = 0.25 + 0.2 * Math.sin(t / 500);
-  ctx.setLineDash([3 * u, 3 * u]); ctx.beginPath(); ctx.moveTo(x1, ground - 11 * u); ctx.lineTo(x2, ground - 15 * u); ctx.stroke(); ctx.restore();
+  ctx.setLineDash([3 * u, 3 * u]); ctx.beginPath(); ctx.moveTo(x1, H * 0.86 - 30 * u); ctx.lineTo(x2, ground - (2 + Math.min(2, Math.floor(s.st.array.n / 25))) * u - 9 * u); ctx.stroke(); ctx.restore();
 }
 /* Whisper-faint tick on #scope near the secret frequency: a hint, not a giveaway. */
 function drawSecretScopeTick(ctx, s, w, h, t) {
