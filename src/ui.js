@@ -304,8 +304,8 @@ function openEnding(e) {
   const first = !s.endingsSeen[e.id];
   openModal({ eyebrow: 'Ending \u00b7 ' + e.name, title: e.name, body: e.text + '\n\nRun telemetry\n' + scorecardText(),
     actions: [['Keep playing', () => { if (first) { s.endingsSeen[e.id] = Date.now(); s.echoes = (s.echoes || 0) + e.echoes; }
-      closeModal(); save(); $('endingsBox').dataset.k = ''; toast(first && e.echoes ? `+${e.echoes} Echo${e.echoes > 1 ? 'es' : ''} kept for a future loop.` : 'The run goes on. Nothing is lost.'); }, 'primary'],
-      ['Keep playing and begin a new loop', () => { if (first) { s.endingsSeen[e.id] = Date.now(); s.echoes = (s.echoes || 0) + e.echoes; } closeModal(); startNewLoop(); }],
+      s.loopReady = true; closeModal(); save(); $('endingsBox').dataset.k = ''; toast(first && e.echoes ? `+${e.echoes} Echo${e.echoes > 1 ? 'es' : ''} kept for a future loop.` : 'The run goes on. Nothing is lost.'); }, 'primary'],
+      ['Restart the observatory (new loop)', () => { if (first) { s.endingsSeen[e.id] = Date.now(); s.echoes = (s.echoes || 0) + e.echoes; } s.loopReady = true; closeModal(); startNewLoop(); }],
       ['Not yet', closeModal]] });
   $('mBody').lastElementChild.classList.add('scorecard');
   $('mTitle').insertAdjacentHTML('afterbegin', texImgHTML('ending_' + e.id, e.name, 'anomaly'));
@@ -324,7 +324,7 @@ function renderEndings() {
 
 /* echoes prestige + new game+ loop (PROP-013) */
 function startNewLoop() {
-  if (!Object.keys(s.endingsSeen || {}).length) return;
+  if (!s.loopReady) return;
   const keep = { mix: s.mix, echoes: (s.echoes || 0) + 1, echoSpent: s.echoSpent || 0, echoUp: s.echoUp || {}, endingsSeen: s.endingsSeen, loops: (s.loops || 0) + 1, seenIntro: true };
   s = Object.assign(fresh(), keep);
   s.photons = 500 * echoLv('memory'); s.total = s.photons;
@@ -334,19 +334,19 @@ function startNewLoop() {
   save(); toast(`Loop ${s.loops} begins. Week 1 again, and the signal remembers: +${Math.round(ECHO_BONUS * 100)}% output per Echo (now x${echoMul().toFixed(2)}).`);
 }
 function renderEchoes() {
-  const tag = $('echoesTag'), box = $('echoesBox'), has = (s.echoes || 0) > 0 || (s.loops || 0) > 0, seen = Object.keys(s.endingsSeen || {}).length > 0;
+  const tag = $('echoesTag'), box = $('echoesBox'), has = (s.echoes || 0) > 0 || (s.loops || 0) > 0, seen = !!s.loopReady;
   tag.hidden = !has; if (has) tag.textContent = `Loop ${s.loops || 0} \u00b7 ${s.echoes} Echo${s.echoes === 1 ? '' : 'es'} \u00b7 x${echoMul().toFixed(2)} output`;
   box.hidden = !(has || seen); if (box.hidden) return;
-  const k = [s.echoes, s.echoSpent, s.loops, seen, ECHO_UPG.map(u => echoLv(u.id)).join('')].join('|');
+  $('loopBtn').hidden = !seen;
+  const k = [s.echoes, s.echoSpent, s.loops, seen, s.loopReady, ECHO_UPG.map(u => echoLv(u.id)).join('')].join('|');
   if (box.dataset.k === k) return; box.dataset.k = k;
-  $('echoText').textContent = `Echoes carry across loops: each one adds ${Math.round(ECHO_BONUS * 100)}% to photon and station output. ${echoFree()} to spend. Beginning a new loop resets the run to Week 1 and grants +1 Echo.`;
+  $('echoText').textContent = `Echoes carry across loops: each one adds ${Math.round(ECHO_BONUS * 100)}% to photon and station output. ${echoFree()} to spend. A new loop unlocks each time you complete an ending in the current run; it resets the run to Week 1 and grants +1 Echo.`;
   const w = $('echoUpgs'); w.innerHTML = '';
   ECHO_UPG.forEach(u => { const lv = echoLv(u.id), maxed = lv >= ECHO_MAX_LV, c = echoCost(u.id), b = document.createElement('button');
     b.type = 'button'; b.className = 'btn ghost'; b.disabled = maxed || echoFree() < c; b.title = u.desc(lv);
     b.textContent = maxed ? `${u.name} \u00b7 max` : `${u.name} ${lv}/${ECHO_MAX_LV} \u00b7 ${c} Echo${c > 1 ? 'es' : ''}`;
     b.onclick = () => { if (echoFree() < c || lv >= ECHO_MAX_LV) return; s.echoSpent += c; s.echoUp[u.id] = lv + 1; box.dataset.k = ''; save(); toast(u.desc(lv + 1).replace(/\(now .*\)\.?$/, '').trim()); };
     w.appendChild(b); });
-  $('loopBtn').hidden = !seen;
 }
 $('loopBtn').onclick = () => openModal({ eyebrow: 'New loop', title: 'Begin a new loop?', body: 'The observatory resets to Week 1. You keep your Echoes, Echo upgrades and the endings you have seen.\n\nYou gain +1 Echo for the loop.',
   actions: [['Begin loop', () => { closeModal(); startNewLoop(); }, 'primary'], ['Not yet', closeModal]] });

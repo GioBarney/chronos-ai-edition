@@ -87,7 +87,7 @@ const surgeOn = now => now < s.surgeUntil;
 // photons a full surge adds over 60 s at full clarity (the x3 minus the x1 you'd get anyway)
 const glintValue = () => (SURGE_MUL - 1) * (baseRate() + passiveRate() + operatorRate()) * SURGE_MS / 1000;
 const fresh = () => ({
-  v: 6, phase: 1, echoes: 0, endingsSeen: {}, loops: 0, echoSpent: 0, echoUp: {}, startedAt: Date.now(), lastSave: Date.now(),
+  v: 6, phase: 1, echoes: 0, endingsSeen: {}, loops: 0, loopReady: false, echoSpent: 0, echoUp: {}, startedAt: Date.now(), lastSave: Date.now(),
   photons: 0, total: 0, clarity: 0, heat: 0,
   tuned: 1420.380, knobAngle: 0, drift: 0,
   up: { tuner: 0, lens: 0, horn: 0, lna: 0, sink: 0, tape: 0 },
