@@ -201,12 +201,12 @@ function buildCrewList() {
   if (!s.crew.length) { box.innerHTML = '<p class="teaser">No crew yet. Open a job listing or hire a scout to find people.</p>'; return; }
   const pd = document.createElement('p'); pd.className = 'teaser'; pd.id = 'nextPay'; box.appendChild(pd);
   s.crew.forEach(w => {
-    const d = document.createElement('details'); d.className = 'wk'; if (rt.openW.has(w.id)) d.open = true;
+    const d = document.createElement('details'); d.className = 'wk' + (w.cheque ? ' cheque-card' : ''); if (rt.openW.has(w.id)) d.open = true;
     d.addEventListener('toggle', () => { d.open ? rt.openW.add(w.id) : rt.openW.delete(w.id); });
     const opts = [['', 'Unassigned'], ...JOBS, ...STATIONS.filter(st => s.st[st.id].n > 0).map(st => ['st:' + st.id, 'Run ' + st.name.toLowerCase()])]
       .map(([v, l]) => { const other = s.crew.find(x => x !== w && x.job === (v || null)); return `<option value="${v}"${(w.job || '') === v ? ' selected' : ''}>${esc(l)}${v && other ? ` (now ${esc(other.name)})` : ''}</option>`; }).join('');
     const low = w.morale < 40;
-    d.innerHTML = `<summary><span class="wn">${esc(w.name)}</span><span class="wj">${esc(jobName(w.job))}</span><span class="wm${low ? ' low' : ''}">Morale ${Math.round(w.morale)}%${w.missed ? ` · ${w.missed} missed payday${w.missed > 1 ? 's' : ''}` : ''}</span></summary>
+    d.innerHTML = `<summary><span class="wn">${texImgHTML(w.cheque ? 'crew_cheque' : 'crew_worker', w.name, w.cheque ? 'heat' : 'signal')}${esc(w.name)}</span><span class="wj">${esc(jobName(w.job))}</span><span class="wm${low ? ' low' : ''}">Morale ${Math.round(w.morale)}%${w.missed ? ` · ${w.missed} missed payday${w.missed > 1 ? 's' : ''}` : ''}</span></summary>
       <div class="wbody"><div class="fm">${esc(w.trait)}</div><div class="fm" data-eff="${w.id}"></div>
       <select id="job-${w.id}" aria-label="Job for ${esc(w.name)}">${opts}</select>
       <div class="stats">${STAT_KEYS.map(k => `<div class="srow"><span>${STAT_NAMES[k]}</span>${statCell(w, k)}</div>`).join('')}</div>

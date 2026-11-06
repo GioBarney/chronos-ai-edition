@@ -183,3 +183,15 @@ canvas{display:block;width:100%;max-width:100%}
 @keyframes glintSweep{to{transform:translateX(100%)}}
 @media (prefers-reduced-motion:reduce){.btn.glint::after{animation:none;opacity:0}}
 .label.surge{color:var(--anomaly)}
+
+/* council build 3 (PROP-009) */
+.tex{vertical-align:-5px;margin-right:8px;border-radius:50%}
+.st-pips{display:flex;gap:4px;padding:2px 0 4px}
+.st-pips i{width:14px;height:5px;border-radius:3px;background:var(--line)}
+.st-pips i.on{background:var(--c,var(--signal));box-shadow:0 0 6px -1px var(--c,var(--signal))}
+.knob[data-state="receiving"]{box-shadow:0 0 22px -8px var(--signal)}
+.knob[data-state="locked"]{box-shadow:0 0 30px -6px var(--ok)}
+.knob[data-state="tripped"]{box-shadow:0 0 30px -6px var(--danger)}
+.wk.cheque-card{border-color:var(--heat);box-shadow:0 0 14px -8px var(--heat)}
+#logs button.hex-clue-row{border-color:var(--anomaly)}
+#logs button .tex{float:left;margin-top:2px}
