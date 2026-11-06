@@ -141,7 +141,7 @@ function updateUI(info, now) {
   renderCrew(now);
   renderFunding(now);
   renderStations();
-  renderDecode(now); renderDailyTx(now); renderUps(); renderLogs();
+  renderDecode(now); renderDailyTx(now); renderPhase(); renderUps(); renderLogs();
   if (!$('dev').hidden) $('devkv').textContent = `test mode ${s.free ? 'on' : 'off'} · caution ${s.caution.toFixed(1)} · risk ${s.risk.toFixed(1)} · target ${info.tgt.toFixed(4)} MHz · window ±${(info.band * 1000).toFixed(1)} kHz`;
 }
 function buildStations() {
@@ -281,3 +281,15 @@ $('dtxBtn').onclick = () => { const now = Date.now(); if (s.packet < 1 || !(s.fr
   if (s.clarity < 90) { s.clarity = Math.min(100, s.clarity + DAILY_TX_CLARITY); toast(`Transmission logged. Signal clarity +${DAILY_TX_CLARITY}.`); }
   else { const p = Math.max(DAILY_TX_PHOTON_MIN, rt.rate * 600); s.photons += p; s.total += p; toast(`Transmission logged. +${big(p)} photons.`); }
   $('dailyTxBox').dataset.k = ''; save(); };
+
+/* phase shifts (PROP-011) */
+const PHASE_NAMES = ['', 'Phase I \u00b7 Lone Dish', 'Phase II \u00b7 Grant Array', 'Phase III \u00b7 Deep-Time Array'];
+const canPhase3 = () => (s.phase || 1) === 2 && s.st.interf.n >= 1 && (s.free || (s.photons >= PHASE3_PHOTONS && s.money >= PHASE3_MONEY));
+function renderPhase() {
+  const ph = s.phase || 1; $('phaseTag').textContent = PHASE_NAMES[ph]; document.documentElement.dataset.phase = ph;
+  const box = $('phaseShiftBox'); box.hidden = ph !== 2 || s.st.interf.n < 1; if (box.hidden) return;
+  $('psText').textContent = `Spend ${big(PHASE3_PHOTONS)} photons and ${money(PHASE3_MONEY)} to bring the baseline online. All station cycles run 2\u00d7 faster and the endgame opens.`;
+  $('psBtn').disabled = !canPhase3();
+}
+$('psBtn').onclick = () => { if (!canPhase3()) return; if (!s.free) { s.photons -= PHASE3_PHOTONS; s.money -= PHASE3_MONEY; }
+  s.phase = 3; ensureAudio(); sfx.decoded(); toast('Phase III: the Deep-Time Array is online. Stations run 2\u00d7 faster.'); save(); renderPhase(); };

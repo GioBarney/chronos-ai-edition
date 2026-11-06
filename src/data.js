@@ -86,7 +86,7 @@ const surgeOn = now => now < s.surgeUntil;
 // photons a full surge adds over 60 s at full clarity (the x3 minus the x1 you'd get anyway)
 const glintValue = () => (SURGE_MUL - 1) * (baseRate() + passiveRate() + operatorRate()) * SURGE_MS / 1000;
 const fresh = () => ({
-  v: 3, startedAt: Date.now(), lastSave: Date.now(),
+  v: 4, phase: 1, startedAt: Date.now(), lastSave: Date.now(),
   photons: 0, total: 0, clarity: 0, heat: 0,
   tuned: 1420.380, knobAngle: 0, drift: 0,
   up: { tuner: 0, lens: 0, horn: 0, lna: 0, sink: 0, tape: 0 },
@@ -104,6 +104,7 @@ const DAILY_TX = [
   'A long pause. Then: "Do not trust the quiet hours. Trust 1420.405."',
   'The signal thanks you, in your own handwriting somehow. 0x1420.',
 ];
+const PHASE3_PHOTONS = 5e6, PHASE3_MONEY = 250000;
 const DAILY_TX_PHOTON_MIN = 600, DAILY_TX_CLARITY = 25;
 let s = fresh();
 const rt = { holding: false, lastAng: null, limiterCut: false, cautionArmed: false, prevLocked: false,
@@ -126,7 +127,7 @@ const heatRate = () => Math.pow(0.85, s.up.sink) / (1 + jobEff('cool'));
 const coolRate = () => Math.pow(1.15, s.up.sink) * (1 + jobEff('cool'));
 const msCount = n => MILESTONES.filter(m => n >= m).length;
 const nextMs = n => MILESTONES.find(m => n < m);
-const cycleSecs = st => { const e = jobEff('st:' + st.id); return st.time / Math.pow(2, msCount(s.st[st.id].n)) / (e ? 0.6 + 0.8 * e : 1); };
+const cycleSecs = st => { const e = jobEff('st:' + st.id); return st.time / Math.pow(2, msCount(s.st[st.id].n)) / ((s.phase || 1) >= 3 ? 2 : 1) / (e ? 0.6 + 0.8 * e : 1); };
 const payout = st => st.rev * s.st[st.id].n * Math.pow(3, s.stUp[st.id]);
 const upCost = st => s.free ? 0 : st.cost * 25 * Math.pow(12, s.stUp[st.id]);
 const stOpen = i => s.funded && (i === 0 || s.st[STATIONS[i - 1].id].n >= 1);

@@ -10,6 +10,7 @@
 <div class="wrap">
   <header class="top">
     <div class="brand">
+      <span class="phase-tag label" id="phaseTag">Phase I · Lone Dish</span>
       <span class="sub" id="sub">Hollow Ridge Array · Day 1 · Week 1</span>
       <h1>Chronos <span>AI Edition</span></h1>
     </div>
@@ -57,6 +58,7 @@
       <section class="panel" aria-label="Decoder">
         <div class="phead"><h2>Decoder</h2><span class="label" id="pcount">0 / 7 packets</span></div>
         <div class="decode" id="decode"></div>
+        <div class="dtx phase-shift-box" id="phaseShiftBox" hidden><span class="label">Phase III · Deep-Time Array</span><p id="psText"></p><button class="btn" id="psBtn" type="button">Advance to Phase III</button></div>
         <div class="dtx" id="dailyTxBox" hidden><span class="label">Daily transmission</span><p id="dtxText"></p><button class="btn" id="dtxBtn" type="button">Log transmission</button></div>
       </section>
 
@@ -118,7 +120,7 @@
 
   <footer class="foot">
     <span class="label" id="saved">Auto-saves every 5 s</span>
-    <span class="label" id="ver">AI Edition · council build 4</span>
+    <span class="label" id="ver">AI Edition · council build 5</span>
     <button class="chip" id="testBtn" type="button">Test tools</button>
     <div class="confirm" id="resetBox"><button class="chip" id="reset" type="button">Reset run</button></div>
   </footer>
