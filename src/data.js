@@ -81,12 +81,13 @@ const GLINT_MIN = 480, GLINT_MAX = 900;    // seconds of play between glints (8-
 const GLINT_WINDOW = 20e3;                 // ms to catch one
 const SURGE_MS = 60e3, SURGE_MUL = 3;      // x3 photons for 60 s
 const GLINT_AUTO = 0.25;                   // a dial operator auto-collects missed glints at 25% value
-const glintGap = () => GLINT_MIN + Math.random() * (GLINT_MAX - GLINT_MIN);
+const glintSense = () => { try { return s.echoUp.glint || 0; } catch (e) { return 0; } }; // s may not exist yet (TDZ) while building the first fresh()
+const glintGap = () => (GLINT_MIN + Math.random() * (GLINT_MAX - GLINT_MIN)) * (1 - 0.08 * glintSense());
 const surgeOn = now => now < s.surgeUntil;
 // photons a full surge adds over 60 s at full clarity (the x3 minus the x1 you'd get anyway)
 const glintValue = () => (SURGE_MUL - 1) * (baseRate() + passiveRate() + operatorRate()) * SURGE_MS / 1000;
 const fresh = () => ({
-  v: 5, phase: 1, echoes: 0, endingsSeen: {}, startedAt: Date.now(), lastSave: Date.now(),
+  v: 6, phase: 1, echoes: 0, endingsSeen: {}, loops: 0, loopReady: false, echoSpent: 0, echoUp: {}, startedAt: Date.now(), lastSave: Date.now(),
   photons: 0, total: 0, clarity: 0, heat: 0,
   tuned: 1420.380, knobAngle: 0, drift: 0,
   up: { tuner: 0, lens: 0, horn: 0, lna: 0, sink: 0, tape: 0 },
@@ -120,6 +121,18 @@ const ENDINGS = [
     ok: () => (s.dailyTxs || 0) >= 3 && Math.abs(s.tuned - SECRET_MHZ) <= SECRET_TOL,
     text: 'You stop chasing the hydrogen line and let the dial settle where the voice kept asking. A second, quieter carrier opens. It is not a message. It is a door someone left unlocked for you, a long time from now.' },
 ];
+/* Echoes prestige + New Game+ loop (PROP-013). s.echoes = lifetime Echoes earned (never lost); s.echoSpent = Echoes spent on upgrades. */
+const ECHO_BONUS = 0.25, ECHO_MAX_LV = 5;
+const echoMul = () => 1 + ECHO_BONUS * (s.echoes || 0);
+const echoFree = () => Math.max(0, (s.echoes || 0) - (s.echoSpent || 0));
+const echoLv = id => (s.echoUp && s.echoUp[id]) || 0;
+const ECHO_UPG = [
+  { id: 'memory', name: 'Photon memory', desc: lv => `Each new loop starts with ${fmt(500 * (lv + 1))} photons banked (now ${fmt(500 * lv)}).` },
+  { id: 'fund', name: 'Alumni fund', desc: lv => `Each new loop starts with ${money(25000 * (lv + 1))} once funded (now ${money(25000 * lv)}).` },
+  { id: 'steady', name: 'Steady hands', desc: lv => `The receiver heats up ${(lv + 1) * 6}% slower (now ${lv * 6}%).` },
+  { id: 'glint', name: 'Glint sense', desc: lv => `Anomaly glints arrive ${(lv + 1) * 8}% sooner (now ${lv * 8}%).` },
+];
+const echoCost = id => 1 + echoLv(id);
 const PHASE3_PHOTONS = 5e6, PHASE3_MONEY = 250000;
 const DAILY_TX_PHOTON_MIN = 600, DAILY_TX_CLARITY = 25;
 let s = fresh();
@@ -139,12 +152,12 @@ const driftMul = () => Math.pow(0.88, s.up.lens);
 const bandW = () => 0.004 * (1 + 0.18 * s.up.horn);
 const lnaGain = () => 1 + 0.3 * s.up.lna;
 const lnaDecay = () => Math.pow(0.8, s.up.lna);
-const heatRate = () => Math.pow(0.85, s.up.sink) / (1 + jobEff('cool'));
+const heatRate = () => Math.pow(0.85, s.up.sink) / (1 + jobEff('cool')) * (1 - 0.06 * echoLv('steady'));
 const coolRate = () => Math.pow(1.15, s.up.sink) * (1 + jobEff('cool'));
 const msCount = n => MILESTONES.filter(m => n >= m).length;
 const nextMs = n => MILESTONES.find(m => n < m);
 const cycleSecs = st => { const e = jobEff('st:' + st.id); return st.time / Math.pow(2, msCount(s.st[st.id].n)) / ((s.phase || 1) >= 3 ? 2 : 1) / (e ? 0.6 + 0.8 * e : 1); };
-const payout = st => st.rev * s.st[st.id].n * Math.pow(3, s.stUp[st.id]);
+const payout = st => st.rev * s.st[st.id].n * Math.pow(3, s.stUp[st.id]) * echoMul();
 const upCost = st => s.free ? 0 : st.cost * 25 * Math.pow(12, s.stUp[st.id]);
 const stOpen = i => s.funded && (i === 0 || s.st[STATIONS[i - 1].id].n >= 1);
 const repu = () => s.papers + Object.values(s.st).reduce((a, o) => a + o.n, 0) / 10;

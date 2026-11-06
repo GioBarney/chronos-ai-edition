@@ -35,7 +35,7 @@ function tick(dt, now) {
 
   let r = 0;
   if (receiving) { r = baseRate() * Math.pow(s.clarity / 100, 1.5); if (s.heat > 85) r *= 1.6; }
-  const total = (r + passiveRate() + (rt.holding ? 0 : operatorRate())) * (surgeOn(now) ? SURGE_MUL : 1);
+  const total = (r + passiveRate() + (rt.holding ? 0 : operatorRate())) * (surgeOn(now) ? SURGE_MUL : 1) * echoMul();
   s.photons += total * dt; s.total += total * dt;
   rt.rate += (total - rt.rate) * Math.min(1, dt * 4);
   if (r > 0) {
