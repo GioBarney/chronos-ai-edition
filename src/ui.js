@@ -291,7 +291,7 @@ const PHASE_NAMES = ['', 'Phase I \u00b7 Lone Dish', 'Phase II \u00b7 Grant Arra
 const canPhase3 = () => (s.phase || 1) === 2 && s.st.interf.n >= 1 && (s.free || (s.photons >= PHASE3_PHOTONS && s.money >= PHASE3_MONEY));
 function renderPhase() {
   const ph = s.phase || 1; $('phaseTag').textContent = PHASE_NAMES[ph]; document.documentElement.dataset.phase = ph;
-  const box = $('phaseShiftBox'); box.hidden = ph !== 2 || s.st.interf.n < 1; if (box.hidden) return;
+  const box = $('phaseShiftBox'); box.hidden = ph !== 2; if (box.hidden) return; // PROP-020 review: visible all of Phase II so the readiness pill guides the Interferometer step; button stays gated by canPhase3()
   $('psText').textContent = `Spend ${big(PHASE3_PHOTONS)} photons and ${money(PHASE3_MONEY)} to bring the baseline online. All station cycles run 2\u00d7 faster and the endgame opens.`;
   $('psBtn').disabled = !canPhase3();
 }
@@ -426,7 +426,7 @@ function syncBuild13Visuals() {
   const box = $('phaseShiftBox'); if (!box || box.hidden) return;
   let pill = box.querySelector('.ps-ready-pct');
   if (!pill) { pill = document.createElement('span'); pill.className = 'ps-ready-pct'; box.querySelector('.label').appendChild(pill); }
-  const r = Math.min(1, s.photons / PHASE3_PHOTONS), m = Math.min(1, s.money / PHASE3_MONEY), i = s.st.interf.n >= 1 ? 1 : 0;
+  const r = s.free ? 1 : Math.min(1, s.photons / PHASE3_PHOTONS), m = s.free ? 1 : Math.min(1, s.money / PHASE3_MONEY), i = s.st.interf.n >= 1 ? 1 : 0;
   const pct = Math.floor((r + m + i) / 3 * 100);
   pill.textContent = pct + '% ready'; pill.title = 'Photons, grant funds and an Interferometer';
 }
