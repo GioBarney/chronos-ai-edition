@@ -4,7 +4,9 @@
    It loads the REAL formulas from src/data.js and the crew maths from src/crew.js, then drives them with a simple
    deterministic player model (no randomness, expected values). It never touches a browser or a save.
    Model limits: clarity/heat on the dial are folded into one "active efficiency" number per profile; crew are
-   typical hires (fixed stats); echoes/loops are ignored. Use it to compare balance changes, not as a prediction. */
+   typical hires (fixed stats); echoes/loops are ignored. Purchases, packet starts, papers and grants happen only while the tab is
+   open (a session, or awake time for the optimizer). Station runners and tape/dial income keep earning while closed, as the
+   12-hour offline catch-up allows; the 30 s step is fine because those rates are smooth. Use it to compare balance changes, not as a prediction. */
 const fs = require('fs'), path = require('path'), vm = require('vm');
 const root = path.join(__dirname, '..');
 const read = f => fs.readFileSync(path.join(root, 'src', f), 'utf8');
@@ -107,7 +109,7 @@ function run(profile, maxDays) {
       for (const g of GRANTS) { const a = s.apps[g.id]; if (a && t >= a.endAt) { s.money += a.ok * a.amt; delete s.apps[g.id]; } }
       if (sess && lastStipDay < day && s.funded) { s.money += stipendAmt(); lastStipDay = day; }
     }
-    if (open || jobEff('paper') > 0 || true) { trySpendPhotons(); }
+    if (open) { trySpendPhotons(); }
     if (open) { startPaperIfPossible(open); startGrant(open); tryBuy(); tryHire();
       if (s.funded && !hasCheque() && s.money > 20000) { s.crew.push({ id: 0, cheque: true, job: 'cool', wage: 2000, morale: 90, raises: 0, st: { work: 8, tech: 9, writing: 3, loyalty: 10, ambition: 1 } }); } }
     // payday at each day rollover
