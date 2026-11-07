@@ -136,7 +136,6 @@ function updateUI(info, now) {
   }
   syncBuild3Visuals(info);
   syncBuild9Cues();
-  syncBuild10Visuals();
   processPaydays(now); resolveCrew(now); autoCrew();
   if (s.funded && !s.chequeMet && (s.heat >= 80 || rt.limiterCut || info.tripped) && $('modal').hidden) chequeArrives();
   resolveFunding(now);
@@ -145,6 +144,7 @@ function updateUI(info, now) {
   renderStations();
   renderDecode(now); renderDailyTx(now); renderPhase(); renderEndings(); renderEchoes(); renderUps(); renderLogs();
   if (!$('dev').hidden) $('devkv').textContent = `test mode ${s.free ? 'on' : 'off'} · caution ${s.caution.toFixed(1)} · risk ${s.risk.toFixed(1)} · target ${info.tgt.toFixed(4)} MHz · window ±${(info.band * 1000).toFixed(1)} kHz`;
+  syncBuild10Visuals(); // after all renders so it reads this frame's DOM and post-payday state
 }
 function buildStations() {
   const box = $('stations'); box.innerHTML = ''; rt.stEl = {};
@@ -399,6 +399,7 @@ function syncBuild10Visuals() {
     const due = s.free ? 0 : (s.crew || []).reduce((a, w) => a + w.wage, 0) + (s.listing ? 500 : 0);
     box.classList.toggle('payroll-warn', !!s.funded && due > 0 && s.money < due);
   }
-  ['decode', 'grants', 'paperProg'].forEach(id => { const r = $(id); if (!r) return;
-    r.querySelectorAll('.prog > i').forEach(i => { const w = parseFloat(i.style.width); i.classList.toggle('bar-active', w >= 0.2 && w <= 99.8); }); });
+  // shimmer only while a real task is running (and its bar is mid-fill)
+  [['decode', !!s.decode], ['paperProg', !!s.paper]].forEach(([id, on]) => { const r = $(id); if (!r) return;
+    r.querySelectorAll('.prog > i').forEach(i => { const w = parseFloat(i.style.width); i.classList.toggle('bar-active', on && w >= 0.2 && w <= 99.8); }); });
 }
