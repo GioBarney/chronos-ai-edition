@@ -163,7 +163,7 @@ const stOpen = i => s.funded && (i === 0 || s.st[STATIONS[i - 1].id].n >= 1);
 const repu = () => s.papers + Object.values(s.st).reduce((a, o) => a + o.n, 0) / 10;
 const paperCost = () => s.free ? 0 : Math.round(2500 * Math.pow(1.22, s.papers));
 const paperSecs = () => s.free ? 0 : Math.min(4 * 3600, 1200 * Math.pow(1.1, s.papers)) * (1 - 0.4 * Math.min(1, jobEff('paper')));
-const paperPay = () => 20000 * Math.pow(1.3, s.papers) * (1 + 0.5 * jobEff('paper'));
+const paperPay = () => 20000 * Math.pow(1.33, s.papers) * (1 + 0.5 * jobEff('paper'));
 const grantChance = g => Math.min(0.98, g.chance + 0.2 * jobEff('grant'));
 const operatorRate = () => { const e = jobEff('dial'); return e ? baseRate() * 0.5 * e : 0; };
 const stipendAmt = () => 5000 * (1 + repu() * 0.15);
