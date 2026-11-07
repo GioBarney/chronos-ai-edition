@@ -144,6 +144,7 @@ function updateUI(info, now) {
   renderStations();
   renderDecode(now); renderDailyTx(now); renderPhase(); renderEndings(); renderEchoes(); renderUps(); renderLogs();
   if (!$('dev').hidden) $('devkv').textContent = `test mode ${s.free ? 'on' : 'off'} · caution ${s.caution.toFixed(1)} · risk ${s.risk.toFixed(1)} · target ${info.tgt.toFixed(4)} MHz · window ±${(info.band * 1000).toFixed(1)} kHz`;
+  syncBuild10Visuals(); // after all renders so it reads this frame's DOM and post-payday state
 }
 function buildStations() {
   const box = $('stations'); box.innerHTML = ''; rt.stEl = {};
@@ -378,4 +379,27 @@ function syncBuild9Cues() {
   rt.lastCrewN = cl; rt.lastInboxN = ib;
   if (rt.lastMoney !== undefined && s.funded && s.money - rt.lastMoney >= 500) { pulseClass($('money'), 'cash-flash', 900); play('chips'); }
   rt.lastMoney = s.money;
+}
+
+// PROP-016 (council build 10): crew morale pips, payday shortfall warning, active timer bar shimmer. Visual only, no save changes.
+function syncBuild10Visuals() {
+  const list = $('crewList'), box = $('crewPanel');
+  if (list && box) {
+    // identity-safe: map each details.wk to its worker via the job select id (job-<worker id>), never array position
+    list.querySelectorAll('details.wk').forEach(d => {
+      const sel = d.querySelector('select[id^="job-"]'); if (!sel) return;
+      const w = (s.crew || []).find(x => 'job-' + x.id === sel.id); if (!w) return;
+      const m = Math.round(w.morale), lvl = (w.cheque || m >= 80) ? 'high' : m >= 50 ? 'mid' : 'low';
+      let pip = d.querySelector('summary .morale-pip');
+      if (!pip) { pip = document.createElement('i'); pip.className = 'morale-pip'; pip.setAttribute('role', 'img'); d.querySelector('summary .wn').prepend(pip); }
+      if (pip.dataset.morale !== lvl) pip.dataset.morale = lvl;
+      const t = `Morale ${m}%`; if (pip.title !== t) { pip.title = t; pip.setAttribute('aria-label', t); }
+    });
+    // actual wages due at the next payday (job listing fee only counts while listed); free mode never charges
+    const due = s.free ? 0 : (s.crew || []).reduce((a, w) => a + w.wage, 0) + (s.listing ? 500 : 0);
+    box.classList.toggle('payroll-warn', !!s.funded && due > 0 && s.money < due);
+  }
+  // shimmer only while a real task is running (and its bar is mid-fill)
+  [['decode', !!s.decode], ['paperProg', !!s.paper]].forEach(([id, on]) => { const r = $(id); if (!r) return;
+    r.querySelectorAll('.prog > i').forEach(i => { const w = parseFloat(i.style.width); i.classList.toggle('bar-active', on && w >= 0.2 && w <= 99.8); }); });
 }
