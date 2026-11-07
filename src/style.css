@@ -223,3 +223,13 @@ canvas{display:block;width:100%;max-width:100%}
 .cash-flash{animation:cashFlash .9s ease-out}
 @keyframes cashFlash{0%{text-shadow:0 0 0 rgba(255,220,120,0)}30%{text-shadow:0 0 14px rgba(255,220,120,.9);filter:brightness(1.3)}100%{text-shadow:0 0 0 rgba(255,220,120,0)}}
 @media (prefers-reduced-motion:reduce){.ms-tier-up,.inbox-alert-pulse,.cash-flash{animation:none}}
+
+/* PROP-016 (council build 10) */
+.morale-pip{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:middle;background:#52b788}
+.morale-pip[data-morale="mid"]{background:#f4c542}
+.morale-pip[data-morale="low"]{background:#ff6b6b;animation:pipPulse 1.6s ease-in-out infinite}
+@keyframes pipPulse{0%,100%{opacity:1}50%{opacity:.4}}
+.payroll-warn{box-shadow:inset 0 0 0 1px rgba(255,107,107,.55)}
+.prog i.bar-active{background-image:repeating-linear-gradient(115deg,rgba(255,255,255,.18) 0 8px,rgba(255,255,255,0) 8px 20px),linear-gradient(90deg,var(--signal),var(--anomaly));background-size:40px 100%,100% 100%;animation:barShimmer 1.8s linear infinite}
+@keyframes barShimmer{to{background-position:40px 0,0 0}}
+@media (prefers-reduced-motion:reduce){.morale-pip[data-morale="low"],.prog i.bar-active{animation:none}}
