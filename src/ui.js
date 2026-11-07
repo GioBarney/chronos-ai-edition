@@ -100,7 +100,7 @@ function renderLogs() {
   if (rt.logSig === s.packet) return; rt.logSig = s.packet;
   const box = $('logs'); box.innerHTML = '';
   for (let i = s.packet; i >= 0; i--) { const L = LOGS[i]; const b = document.createElement('button'); b.type = 'button';
-    b.innerHTML = `<span class="t"></span><span class="s"></span>`; b.querySelector('.t').textContent = L.title; b.querySelector('.s').textContent = L.short; b.insertAdjacentHTML('afterbegin', texImgHTML('pkt_' + Math.min(i, 6), L.title, 'signal')); if (/\|0x|137\.036/.test(L.body)) b.classList.add('hex-clue-row');
+    b.innerHTML = `<span class="t"></span><span class="s"></span>`; b.querySelector('.t').textContent = L.title; b.querySelector('.s').textContent = L.short; b.insertAdjacentHTML('afterbegin', texImgHTML('pkt_' + Math.min(i, 6), L.title, 'signal')); if (/\|0x|137|1420\.336/.test(L.body)) b.classList.add('hex-clue-row');
     b.onclick = () => openLog(i, false); box.appendChild(b); }
   $('lcount').textContent = `${s.packet + 1} ${s.packet ? 'entries' : 'entry'}`;
 }
@@ -145,6 +145,7 @@ function updateUI(info, now) {
   renderDecode(now); renderDailyTx(now); renderPhase(); renderEndings(); renderEchoes(); renderUps(); renderLogs();
   if (!$('dev').hidden) $('devkv').textContent = `test mode ${s.free ? 'on' : 'off'} · caution ${s.caution.toFixed(1)} · risk ${s.risk.toFixed(1)} · target ${info.tgt.toFixed(4)} MHz · window ±${(info.band * 1000).toFixed(1)} kHz`;
   syncBuild12Visuals();
+  syncBuild13Visuals();
   syncBuild10Visuals(); // after all renders so it reads this frame's DOM and post-payday state
 }
 function buildStations() {
@@ -276,7 +277,7 @@ function renderDailyTx(now) {
   const i = (s.dailyTxs || 0) % DAILY_TX.length;
   if (box.dataset.k !== i + '|' + ready) { box.dataset.k = i + '|' + ready;
     const t = DAILY_TX[i].replace(/\{(.+?)\|(.+?)\}/g, '$1');
-    $('dtxText').textContent = ready ? t : 'Logged for today. The next fragment arrives tomorrow.'; box.classList.toggle('hex-clue-row', ready && /0x|137/.test(DAILY_TX[i])); }
+    $('dtxText').textContent = ready ? t : 'Logged for today. The next fragment arrives tomorrow.'; box.classList.toggle('hex-clue-row', ready && /0x|137|1420\.336/.test(DAILY_TX[i])); }
   $('dtxBtn').disabled = !ready; $('dtxBtn').hidden = !ready;
 }
 $('dtxBtn').onclick = () => { const now = Date.now(); if (s.packet < 1 || !(s.free || dayNum(now) > s.dailyTxDay)) return;
@@ -418,4 +419,14 @@ function syncBuild12Visuals() {
   Array.from(w.children).forEach((b, i) => { const u = ECHO_UPG[i]; if (!u || b.querySelector('.echo-lv-badge')) return;
     const lv = echoLv(u.id), maxed = lv >= ECHO_MAX_LV, bd = document.createElement('span');
     bd.className = 'echo-lv-badge' + (maxed ? ' max' : ''); bd.textContent = maxed ? 'MAX' : `Lv ${lv}/${ECHO_MAX_LV}`; b.appendChild(bd); });
+}
+
+// PROP-020 (council build 13): Phase III readiness pill. Visual only, no save changes.
+function syncBuild13Visuals() {
+  const box = $('phaseShiftBox'); if (!box || box.hidden) return;
+  let pill = box.querySelector('.ps-ready-pct');
+  if (!pill) { pill = document.createElement('span'); pill.className = 'ps-ready-pct'; box.querySelector('.label').appendChild(pill); }
+  const r = Math.min(1, s.photons / PHASE3_PHOTONS), m = Math.min(1, s.money / PHASE3_MONEY), i = s.st.interf.n >= 1 ? 1 : 0;
+  const pct = Math.floor((r + m + i) / 3 * 100);
+  pill.textContent = pct + '% ready'; pill.title = 'Photons, grant funds and an Interferometer';
 }

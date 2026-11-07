@@ -176,7 +176,7 @@ canvas{display:block;width:100%;max-width:100%}
 @media (min-width:700px){.mixer{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px}.mix:nth-child(2){border-top:0;padding-top:2px}}
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;max-width:min(520px,calc(100% - 32px));padding:11px 16px;border-radius:14px;background:var(--panel-2);border:1px solid var(--line);font-size:14px;box-shadow:0 12px 30px -10px #000;opacity:0;pointer-events:none;transition:opacity .25s}
 .toast.show{opacity:1}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}.st-prog-fill{transition:none!important}}
 /* anomaly glints (PROP-005) */
 .btn.glint{justify-self:start;background:var(--anomaly);color:var(--void);padding:10px 14px;font-size:14px;position:relative;overflow:hidden;box-shadow:0 0 18px color-mix(in srgb,var(--anomaly) 55%,transparent)}
 .btn.glint::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);transform:translateX(-100%);animation:glintSweep 1.8s ease-in-out infinite}
@@ -240,3 +240,6 @@ canvas{display:block;width:100%;max-width:100%}
 .st-prog-fill.st-hyper{opacity:.5}
 .echo-lv-badge{margin-left:8px;padding:1px 6px;border-radius:8px;border:1px solid var(--line);font-family:var(--f-mono);font-size:10px;letter-spacing:.04em;color:var(--muted)}
 .echo-lv-badge.max{color:var(--signal);border-color:var(--signal)}
+
+/* PROP-020 (council build 13) */
+.ps-ready-pct{margin-left:8px;padding:1px 8px;border-radius:9px;background:var(--line);font-size:11px;vertical-align:middle}
