@@ -135,6 +135,7 @@ function updateUI(info, now) {
       actions: [['Buy equipment', () => { closeModal(); $('fundPanel').scrollIntoView({ behavior: 'smooth', block: 'start' }); }]] });
   }
   syncBuild3Visuals(info);
+  syncBuild9Cues();
   processPaydays(now); resolveCrew(now); autoCrew();
   if (s.funded && !s.chequeMet && (s.heat >= 80 || rt.limiterCut || info.tripped) && $('modal').hidden) chequeArrives();
   resolveFunding(now);
@@ -354,3 +355,27 @@ function renderEchoes() {
 }
 $('loopBtn').onclick = () => openModal({ eyebrow: 'New loop', title: 'Begin a new loop?', body: 'The observatory resets to Week 1. You keep your Echoes, Echo upgrades and the endings you have seen.\n\nYou gain +1 Echo for the loop.',
   actions: [['Begin loop', () => { closeModal(); startNewLoop(); }, 'primary'], ['Not yet', closeModal]] });
+
+// PROP-015 (council build 9): milestone, crew-arrival and payout micro-cues. Visual only, no save changes.
+function pulseClass(el, cls, ms) {
+  if (!el) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls);
+  setTimeout(() => el.classList.remove(cls), ms);
+}
+function syncBuild9Cues() {
+  if (!rt.stEl) return;
+  const play = n => { try { if (typeof sfx !== 'undefined' && typeof sfx[n] === 'function') sfx[n](); } catch (e) {} };
+  rt.lastMs = rt.lastMs || {};
+  STATIONS.forEach(st => {
+    const o = s.st[st.id], e = rt.stEl[st.id]; if (!o || !e) return;
+    const c = msCount(o.n || 0);
+    if (rt.lastMs[st.id] !== undefined && c > rt.lastMs[st.id]) { pulseClass(e.row, 'ms-tier-up', 1100); } // buyStation() already plays sfx.lock() here
+    rt.lastMs[st.id] = c;
+  });
+  const cl = (s.crew || []).length, ib = (s.inbox || []).length;
+  if (rt.lastCrewN !== undefined && (cl > rt.lastCrewN || ib > rt.lastInboxN)) {
+    pulseClass($('crewList'), 'inbox-alert-pulse', 1400); pulseClass($('inbox'), 'inbox-alert-pulse', 1400); play('knock');
+  }
+  rt.lastCrewN = cl; rt.lastInboxN = ib;
+  if (rt.lastMoney !== undefined && s.funded && s.money - rt.lastMoney >= 500) { pulseClass($('money'), 'cash-flash', 900); play('chips'); }
+  rt.lastMoney = s.money;
+}
