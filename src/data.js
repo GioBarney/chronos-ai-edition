@@ -95,17 +95,17 @@ const fresh = () => ({
   caution: 0, risk: 0, seenIntro: false, weekDone: false, muted: false, free: false, mix: defaultMix(), money: 0, buyMode: '1', st: freshSt(), stUp: freshUpSt(), funded: false, papers: 0, paper: null, apps: {}, stipendDay: 0, v2: true, crew: [], inbox: [], listing: false, nextApp: 0, scout: null, scouts: 0, payDay: 0, chequeMet: false, wseq: 1,
   glintIn: glintGap(), glint: null, surgeUntil: 0, glints: 0, glintsAuto: 0, dailyTxDay: 0, dailyTxs: 0,
 });
-/* Daily transmissions (PROP-010): one short fragment per real day, rotating. Hex clues point at 137.036 MHz. */
+/* Daily transmissions (PROP-010): one short fragment per real day, rotating. fragments lead from the 137 Corridor to the secret 1420.336 MHz tuning. */
 const DAILY_TX = [
   'Carrier steady. A voice, very tired, counts backwards from {137|0x89}.',
   'The message repeats, but a word is different each time. Your word.',
   'Static, then a kettle whistling. Hollow Ridge has no kettle.',
-  'It is asking the dial to settle near one-three-seven, and then a decimal. 0x0.036.',
+  'The voice corrects itself: "Fourteen-twenty. Three-three-six." Not the hydrogen line. 0x1420.',
   'Someone hums the shift-change tune. You never told anyone about the tune.',
-  'A long pause. Then: "Do not trust the quiet hours. Trust 1420.405."',
+  'A long pause. Then: "Do not trust the quiet hours. The needle remembers 1420.336."',
   'The signal thanks you, in your own handwriting somehow. 0x1420.',
 ];
-/* The four endings (PROP-012). Secret corridor: tune near 1420.336 MHz (the 0x0.036 clue) after logging 3 daily transmissions. */
+/* The four endings (PROP-012). Secret corridor: tune near 1420.336 MHz (the daily-transmission clues) after logging 3 daily transmissions. */
 const SECRET_MHZ = 1420.336, SECRET_TOL = 0.004;
 const ENDINGS = [
   { id: 'bureaucrat', name: 'The Bureaucrat', echoes: 0, hint: 'File the paperwork. Five papers or five careful releases.',
