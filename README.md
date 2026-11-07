@@ -28,6 +28,7 @@ Play it by opening `index.html` in a browser. No build step.
 | `src/ui.js` | Panels: decoder, parts, logs, funding, stations, sound menu |
 | `src/crew.js` | Crew, hiring, interviews, payday, test tools |
 | `src/boot.js` | Main loop and startup |
+| `tools/pacing.js` | Pacing audit: `node tools/pacing.js` prints the day a laid-back and an optimizer player reach each phase (not shipped in the game) |
 
 Scripts are plain (non-module) and load in that order, sharing top-level names.
 
