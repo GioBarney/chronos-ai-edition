@@ -53,6 +53,46 @@ function drawHorizonProgression(ctx, W, H, u, t) {
   }
 }
 
+/* PROP-014: sky & scope progression cues. Derived from state only (no save data). */
+const ENDING_STARS = [['bureaucrat', '#f4c542', 0.22, 0.14], ['collapse', '#ff6b6b', 0.36, 0.08], ['ouroboros', '#64dfdf', 0.5, 0.15], ['secret', '#c77dff', 0.64, 0.07]];
+function drawBuild8SkyAndScopeCues(ctx, W, H, u, t) {
+  const seen = s.endingsSeen || {}; let prev = null;
+  ctx.save(); ctx.lineWidth = 0.8 * u;
+  for (const [id, col, fx, fy] of ENDING_STARS) {
+    if (!seen[id]) continue;
+    const x = W * fx, y = H * fy, pulse = 0.55 + 0.35 * Math.sin(t / 700 + fx * 9);
+    if (prev) { ctx.globalAlpha = 0.18; ctx.strokeStyle = col; ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(x, y); ctx.stroke(); }
+    ctx.globalAlpha = pulse; ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, y, 1.9 * u, 0, 6.283); ctx.fill();
+    ctx.globalAlpha = pulse * 0.25; ctx.beginPath(); ctx.arc(x, y, 4.2 * u, 0, 6.283); ctx.fill();
+    prev = [x, y];
+  }
+  // counter-rotating orbital rings around the sky source, one per completed loop (max 4)
+  const rings = Math.min(4, s.loops || 0);
+  if (rings > 0) {
+    const cx = W * 0.82, cy = H * 0.2; ctx.strokeStyle = C.anomaly;
+    for (let i = 0; i < rings; i++) {
+      const dir = i % 2 ? -1 : 1, rx = (9 + i * 4.5) * u, ry = rx * 0.38, rot = dir * t / (2600 + i * 700) + i;
+      ctx.globalAlpha = 0.3; ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, rot, 0, 6.283); ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+function drawInterferometerBaseline(ctx, W, H, u, t) {
+  if ((s.phase || 1) < 3 || !s.st.array || s.st.array.n < 1) return;
+  // visible from array #1: runs from the main dish pedestal to the farthest secondary dish (grows with array count)
+  const ground = H * 0.84, x1 = W * 0.3, x2 = W * (0.5 + Math.min(2, Math.floor(s.st.array.n / 25)) * 0.09);
+  ctx.save(); ctx.strokeStyle = C.anomaly; ctx.lineWidth = 1 * u; ctx.globalAlpha = 0.25 + 0.2 * Math.sin(t / 500);
+  ctx.setLineDash([3 * u, 3 * u]); ctx.beginPath(); ctx.moveTo(x1, H * 0.86 - 30 * u); ctx.lineTo(x2, ground - (2 + Math.min(2, Math.floor(s.st.array.n / 25))) * u - 9 * u); ctx.stroke(); ctx.restore();
+}
+/* Whisper-faint tick on #scope near the secret frequency: a hint, not a giveaway. */
+function drawSecretScopeTick(ctx, s, w, h, t) {
+  if ((s.endingsSeen && s.endingsSeen.secret) || (s.dailyTxs || 0) < 3) return;
+  const d = s.tuned - SECRET_MHZ; if (Math.abs(d) > 0.008) return;
+  const x = w / 2 - (d / 0.008) * w * 0.4, len = 6 * DPR;
+  ctx.save(); ctx.strokeStyle = C.anomaly; ctx.lineWidth = 1; ctx.globalAlpha = 0.14 + 0.08 * Math.sin(t * 4.0);
+  ctx.beginPath(); ctx.moveTo(Math.round(x) + 0.5, h / 2 - len); ctx.lineTo(Math.round(x) + 0.5, h / 2 + len); ctx.stroke(); ctx.restore();
+}
+
 function drawScene(info, t) {
   const ctx = sctx, W = scene.width, H = scene.height; if (!W || !H) return;
   const u = H / 210;
@@ -110,6 +150,8 @@ function drawScene(info, t) {
   // aircraft warning light
   if (Math.floor(t / 800) % 2 === 0) { ctx.fillStyle = C.danger; ctx.beginPath(); ctx.arc(px, py - 9 * u, 1.8 * u, 0, 6.283); ctx.fill(); }
   drawHorizonProgression(ctx, W, H, u, t);
+  drawInterferometerBaseline(ctx, W, H, u, t);
+  drawBuild8SkyAndScopeCues(ctx, W, H, u, t);
   // near hill over the pedestal foot
   hill(ctx, W, H, H * 0.93, 6 * u, 3, 4.2, C['hill-near']);
   // dust
@@ -142,5 +184,6 @@ function drawScope(info, t) {
     for (let x = 0; x <= W; x += step) { const y = mid + (Math.random() - 0.5) * A * 0.08; x ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
   }
   ctx.stroke(); ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+  drawSecretScopeTick(ctx, s, W, H, t);
 }
 
