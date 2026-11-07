@@ -233,3 +233,10 @@ canvas{display:block;width:100%;max-width:100%}
 .prog i.bar-active{background-image:repeating-linear-gradient(115deg,rgba(255,255,255,.18) 0 8px,rgba(255,255,255,0) 8px 20px),linear-gradient(90deg,var(--signal),var(--anomaly));background-size:40px 100%,100% 100%;animation:barShimmer 1.8s linear infinite}
 @keyframes barShimmer{to{background-position:40px 0,0 0}}
 @media (prefers-reduced-motion:reduce){.morale-pip[data-morale="low"],.prog i.bar-active{animation:none}}
+
+/* PROP-018 (council build 12) */
+.st{position:relative;overflow:hidden}
+.st-prog-fill{position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--c);opacity:.8;pointer-events:none}
+.st-prog-fill.st-hyper{opacity:.5}
+.echo-lv-badge{margin-left:8px;padding:1px 6px;border-radius:8px;border:1px solid var(--line);font-family:var(--f-mono);font-size:10px;letter-spacing:.04em;color:var(--muted)}
+.echo-lv-badge.max{color:var(--signal);border-color:var(--signal)}

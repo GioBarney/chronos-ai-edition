@@ -144,6 +144,7 @@ function updateUI(info, now) {
   renderStations();
   renderDecode(now); renderDailyTx(now); renderPhase(); renderEndings(); renderEchoes(); renderUps(); renderLogs();
   if (!$('dev').hidden) $('devkv').textContent = `test mode ${s.free ? 'on' : 'off'} · caution ${s.caution.toFixed(1)} · risk ${s.risk.toFixed(1)} · target ${info.tgt.toFixed(4)} MHz · window ±${(info.band * 1000).toFixed(1)} kHz`;
+  syncBuild12Visuals();
   syncBuild10Visuals(); // after all renders so it reads this frame's DOM and post-payday state
 }
 function buildStations() {
@@ -402,4 +403,19 @@ function syncBuild10Visuals() {
   // shimmer only while a real task is running (and its bar is mid-fill)
   [['decode', !!s.decode], ['paperProg', !!s.paper]].forEach(([id, on]) => { const r = $(id); if (!r) return;
     r.querySelectorAll('.prog > i').forEach(i => { const w = parseFloat(i.style.width); i.classList.toggle('bar-active', on && w >= 0.2 && w <= 99.8); }); });
+}
+
+// PROP-018 (council build 12): station cycle progress sweep and Echo upgrade level badges. Visual only, no save changes.
+function syncBuild12Visuals() {
+  if (rt.stEl) STATIONS.forEach(st => { const o = s.st[st.id], e = rt.stEl[st.id]; if (!o || !e) return;
+    let f = e.row.querySelector('.st-prog-fill');
+    if (!o.n) { if (f) f.remove(); return; }
+    if (!f) { f = document.createElement('i'); f.className = 'st-prog-fill'; f.setAttribute('aria-hidden', 'true'); e.row.appendChild(f); }
+    const hyper = o.run && cycleSecs(st) <= 0.25;
+    f.classList.toggle('st-hyper', hyper);
+    f.style.width = hyper ? '100%' : (o.run ? Math.min(100, o.p * 100) : 0) + '%'; });
+  const w = $('echoUpgs'); if (!w) return;
+  Array.from(w.children).forEach((b, i) => { const u = ECHO_UPG[i]; if (!u || b.querySelector('.echo-lv-badge')) return;
+    const lv = echoLv(u.id), maxed = lv >= ECHO_MAX_LV, bd = document.createElement('span');
+    bd.className = 'echo-lv-badge' + (maxed ? ' max' : ''); bd.textContent = maxed ? 'MAX' : `Lv ${lv}/${ECHO_MAX_LV}`; b.appendChild(bd); });
 }
