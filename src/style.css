@@ -242,4 +242,7 @@ canvas{display:block;width:100%;max-width:100%}
 .echo-lv-badge.max{color:var(--signal);border-color:var(--signal)}
 
 /* PROP-020 (council build 13) */
+.ps-ready-pct.ps-ready-full{background:#52b788;color:#0b1d16}
+.endings-seen-pill{margin-left:8px;padding:1px 8px;border-radius:9px;background:var(--line);font-size:11px;vertical-align:middle}
+.endings-seen-pill.all-seen{background:#64dfdf;color:#08202a}
 .ps-ready-pct{margin-left:8px;padding:1px 8px;border-radius:9px;background:var(--line);font-size:11px;vertical-align:middle}
