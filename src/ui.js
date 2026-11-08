@@ -448,7 +448,10 @@ function syncBuild14Visuals() {
 function syncBuild15Visuals() {
   if (!rt.stEl) return;
   const out = {}; let tot = 0;
-  STATIONS.forEach(st => { const o = s.st[st.id]; if (!o || !o.n) return; const v = payout(st) / Math.max(0.05, cycleSecs(st)); out[st.id] = v; tot += v; });
+  STATIONS.forEach(st => { const o = s.st[st.id]; if (!o || !o.n) return; const c = cycleSecs(st), p = payout(st);
+    if (!Number.isFinite(c) || c <= 0 || !Number.isFinite(p) || p < 0) return;
+    const v = p / c; if (!Number.isFinite(v) || v < 0) return; out[st.id] = v; tot += v; });
+  if (!Number.isFinite(tot) || tot <= 0) { tot = 0; for (const k in out) delete out[k]; }
   STATIONS.forEach(st => { const e = rt.stEl[st.id]; if (!e) return;
     let b = e.row.querySelector('.st-share-pct');
     if (!(st.id in out) || tot <= 0) { if (b) b.remove(); return; }
