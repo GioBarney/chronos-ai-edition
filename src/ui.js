@@ -151,6 +151,7 @@ function updateUI(info, now) {
   syncBuild16Visuals(now);
   syncBuild17Visuals(info);
   syncBuild18Visuals(info);
+  syncBuild19Visuals(info);
   syncBuild10Visuals(); // after all renders so it reads this frame's DOM and post-payday state
 }
 function buildStations() {
@@ -461,6 +462,14 @@ function syncBuild17Visuals(info) {
 }
 
 // PROP-025 (council build 18): signal clarity peak-lock highlight and threshold tooltip. Visual only, no save changes.
+// PROP-026 (council build 19): frequency readout highlights when tuned on the 1420.405 MHz hydrogen-line carrier; tooltip stays spoiler-free. Visual only, no save changes.
+function syncBuild19Visuals(info) {
+  const f = $('freq'); if (!f) return;
+  const on = !Boolean(info && info.tripped) && Number.isFinite(s.tuned) && Math.abs(s.tuned - HLINE) <= 0.004;
+  f.classList.toggle('freq-locked', on);
+  if (!on) { f.removeAttribute('title'); return; }
+  f.title = 'Locked on the hydrogen line (H I, 1420.405 MHz), the quiet 21 cm hum of cold gas between the stars.' + ((s.dailyTxs || 0) >= 3 ? ' The band is wider than this one carrier.' : '');
+}
 function syncBuild18Visuals(info) {
   const c = $('clar'), bar = $('clarbar') || $('clarBar'); if (!c) return;
   const tripped = Boolean(info && info.tripped), v = s.clarity;
