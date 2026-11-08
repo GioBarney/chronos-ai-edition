@@ -483,7 +483,7 @@ function syncBuild18Visuals(info) {
 }
 
 // PROP-027 (council build 20): live percent-complete and time-left tooltips on active decode, paper and grant progress. Visual only, no save changes.
-// The grant list has no bar element, so its tooltip goes on the pending Apply button (duration derived from the grant's review hours).
+// The grant list has no bar element, so its tooltip goes on the grant row (duration derived from the grant's review hours).
 function syncBuild20Visuals(now) {
   const tip = (el, label, left, total) => { if (!el) return;
     const pct = total > 0 ? clamp(1 - left / total, 0, 1) * 100 : NaN;
@@ -493,8 +493,9 @@ function syncBuild20Visuals(now) {
   if (dp) { if (s.decode && PACKETS[s.decode.idx]) tip(dp, 'Packet decode', (s.decode.endAt - now) / 1000, PACKETS[s.decode.idx].secs); else dp.removeAttribute('title'); }
   const pp = $('paperProg');
   if (pp) { if (s.paper) tip(pp, 'Paper draft', (s.paper.endAt - now) / 1000, s.paper.secs); else pp.removeAttribute('title'); }
-  GRANTS.forEach(g => { const e = rt.gEl && rt.gEl[g.id], a = s.apps && s.apps[g.id]; if (!e || !e.btn) return;
-    if (a) tip(e.btn, 'Grant application', (a.endAt - now) / 1000, g.hrs * 3600); else e.btn.removeAttribute('title'); });
+  GRANTS.forEach(g => { const e = rt.gEl && rt.gEl[g.id], a = s.apps && s.apps[g.id]; if (!e || !e.meta) return;
+    const row = e.meta.closest('.frow') || e.meta; // not the disabled button: disabled buttons don't show hover tooltips
+    if (a) tip(row, 'Grant application', (a.endAt - now) / 1000, g.hrs * 3600); else row.removeAttribute('title'); });
 }
 
 // PROP-023 (council build 16): final-10s warning cue on the active photon surge tag. Visual only, no save changes.
