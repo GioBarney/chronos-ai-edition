@@ -252,3 +252,7 @@ canvas{display:block;width:100%;max-width:100%}
 .label.surge.surge-ending{animation:surgeEnding 1s ease-in-out infinite}
 @keyframes surgeEnding{0%,100%{opacity:1}50%{opacity:.45}}
 @media (prefers-reduced-motion:reduce){.label.surge.surge-ending{animation:none;text-decoration:underline}}
+
+.heat-danger{animation:heatDanger 1.2s ease-in-out infinite}
+@keyframes heatDanger{0%,100%{opacity:1}50%{opacity:.55}}
+@media (prefers-reduced-motion:reduce){.heat-danger{animation:none}#temp.heat-danger{text-decoration:underline}#heatbar.heat-danger{outline:1px solid #ffad4a}}
