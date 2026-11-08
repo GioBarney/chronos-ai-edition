@@ -149,6 +149,7 @@ function updateUI(info, now) {
   syncBuild14Visuals();
   syncBuild15Visuals();
   syncBuild16Visuals(now);
+  syncBuild17Visuals(info);
   syncBuild10Visuals(); // after all renders so it reads this frame's DOM and post-payday state
 }
 function buildStations() {
@@ -443,6 +444,19 @@ function syncBuild14Visuals() {
   const seen = ENDINGS.filter(e => s.endingsSeen && s.endingsSeen[e.id]).length;
   pill.textContent = seen + ' / ' + ENDINGS.length + ' seen'; pill.title = 'Endings you have played';
   pill.classList.toggle('all-seen', seen >= ENDINGS.length);
+}
+
+// PROP-024 (council build 17): receiver heat danger-zone pulse and limiter/burnout tooltip. Visual only, no save changes.
+function syncBuild17Visuals(info) {
+  const t = $('temp'), b = $('heatbar'); if (!t || !b) return;
+  const tripped = Boolean(info && info.tripped), h = Number.isFinite(s.heat) ? s.heat : 0;
+  const danger = tripped || h >= 75;
+  t.classList.toggle('heat-danger', danger); b.classList.toggle('heat-danger', danger);
+  if (!danger) { t.removeAttribute('title'); return; }
+  const k = Math.round(18 + h * 1.02);
+  t.title = tripped ? 'Receiver tripped \u2014 cooling down to reset threshold'
+    : s.limiterOff ? `High heat (${k} K) \u2014 limiter off: burnout risk above 85`
+    : `High heat (${k} K) \u2014 safety limiter active at 85`;
 }
 
 // PROP-023 (council build 16): final-10s warning cue on the active photon surge tag. Visual only, no save changes.
