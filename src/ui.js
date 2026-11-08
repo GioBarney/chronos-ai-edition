@@ -152,6 +152,7 @@ function updateUI(info, now) {
   syncBuild17Visuals(info);
   syncBuild18Visuals(info);
   syncBuild19Visuals(info);
+  syncBuild20Visuals(now);
   syncBuild10Visuals(); // after all renders so it reads this frame's DOM and post-payday state
 }
 function buildStations() {
@@ -479,6 +480,21 @@ function syncBuild18Visuals(info) {
   const pc = v.toFixed(1) + '%';
   c.title = v >= 95 ? `Peak clarity (${pc}) \u2014 Ouroboros threshold met (at least 95%) and Daily TX photon bonus active (at least 90%)`
     : `High clarity (${pc}) \u2014 Daily TX photon bonus active (at least 90%); Ouroboros threshold at 95%`;
+}
+
+// PROP-027 (council build 20): live percent-complete and time-left tooltips on active decode, paper and grant progress. Visual only, no save changes.
+// The grant list has no bar element, so its tooltip goes on the pending Apply button (duration derived from the grant's review hours).
+function syncBuild20Visuals(now) {
+  const tip = (el, label, left, total) => { if (!el) return;
+    const pct = total > 0 ? clamp(1 - left / total, 0, 1) * 100 : NaN;
+    if (!(pct >= 0.2 && pct <= 99.8)) { el.removeAttribute('title'); return; }
+    el.title = `${label}: ${Math.floor(pct)}% complete (~${dur(left)} remaining)`; };
+  const dp = document.querySelector('#decode .prog');
+  if (dp) { if (s.decode && PACKETS[s.decode.idx]) tip(dp, 'Packet decode', (s.decode.endAt - now) / 1000, PACKETS[s.decode.idx].secs); else dp.removeAttribute('title'); }
+  const pp = $('paperProg');
+  if (pp) { if (s.paper) tip(pp, 'Paper draft', (s.paper.endAt - now) / 1000, s.paper.secs); else pp.removeAttribute('title'); }
+  GRANTS.forEach(g => { const e = rt.gEl && rt.gEl[g.id], a = s.apps && s.apps[g.id]; if (!e || !e.btn) return;
+    if (a) tip(e.btn, 'Grant application', (a.endAt - now) / 1000, g.hrs * 3600); else e.btn.removeAttribute('title'); });
 }
 
 // PROP-023 (council build 16): final-10s warning cue on the active photon surge tag. Visual only, no save changes.
