@@ -256,3 +256,7 @@ canvas{display:block;width:100%;max-width:100%}
 .heat-danger{animation:heatDanger 1.2s ease-in-out infinite}
 @keyframes heatDanger{0%,100%{opacity:1}50%{opacity:.55}}
 @media (prefers-reduced-motion:reduce){.heat-danger{animation:none}#temp.heat-danger{text-decoration:underline}#heatbar.heat-danger{outline:1px solid #ffad4a}}
+
+.clarity-peak{animation:clarityPeak 1.6s ease-in-out infinite;color:#64dfdf}
+@keyframes clarityPeak{0%,100%{opacity:1}50%{opacity:.6}}
+@media (prefers-reduced-motion:reduce){.clarity-peak{animation:none}#clar.clarity-peak{text-decoration:underline}#clarbar.clarity-peak,#clarBar.clarity-peak{outline:1px solid #64dfdf}}

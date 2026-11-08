@@ -150,6 +150,7 @@ function updateUI(info, now) {
   syncBuild15Visuals();
   syncBuild16Visuals(now);
   syncBuild17Visuals(info);
+  syncBuild18Visuals(info);
   syncBuild10Visuals(); // after all renders so it reads this frame's DOM and post-payday state
 }
 function buildStations() {
@@ -457,6 +458,18 @@ function syncBuild17Visuals(info) {
   t.title = tripped ? 'Receiver tripped \u2014 cooling down to reset threshold'
     : s.limiterOff ? `High heat (${k} K) \u2014 limiter off: burnout risk above 85`
     : `High heat (${k} K) \u2014 safety limiter active at 85`;
+}
+
+// PROP-025 (council build 18): signal clarity peak-lock highlight and threshold tooltip. Visual only, no save changes.
+function syncBuild18Visuals(info) {
+  const c = $('clar'), bar = $('clarbar') || $('clarBar'); if (!c) return;
+  const tripped = Boolean(info && info.tripped), v = s.clarity;
+  const peak = !tripped && Number.isFinite(v) && v >= 90;
+  c.classList.toggle('clarity-peak', peak); if (bar) bar.classList.toggle('clarity-peak', peak);
+  if (!peak) { c.removeAttribute('title'); return; }
+  const pc = v.toFixed(1) + '%';
+  c.title = v >= 95 ? `Peak clarity (${pc}) \u2014 Ouroboros threshold met (at least 95%) and Daily TX photon bonus active (at least 90%)`
+    : `High clarity (${pc}) \u2014 Daily TX photon bonus active (at least 90%); Ouroboros threshold at 95%`;
 }
 
 // PROP-023 (council build 16): final-10s warning cue on the active photon surge tag. Visual only, no save changes.
