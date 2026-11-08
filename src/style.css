@@ -248,3 +248,7 @@ canvas{display:block;width:100%;max-width:100%}
 .ps-ready-pct{margin-left:8px;padding:1px 8px;border-radius:9px;background:var(--line);font-size:11px;vertical-align:middle}
 .st-share-pct{margin-left:6px;padding:0 6px;border-radius:8px;background:var(--line);font-size:10px;font-family:var(--f-mono);color:var(--muted)}
 .st-share-pct.st-share-lead{background:#64dfdf;color:#08202a}
+
+.label.surge.surge-ending{animation:surgeEnding 1s ease-in-out infinite}
+@keyframes surgeEnding{0%,100%{opacity:1}50%{opacity:.45}}
+@media (prefers-reduced-motion:reduce){.label.surge.surge-ending{animation:none;text-decoration:underline}}
