@@ -260,3 +260,7 @@ canvas{display:block;width:100%;max-width:100%}
 .clarity-peak{animation:clarityPeak 1.6s ease-in-out infinite;color:#64dfdf}
 @keyframes clarityPeak{0%,100%{opacity:1}50%{opacity:.6}}
 @media (prefers-reduced-motion:reduce){.clarity-peak{animation:none}#clar.clarity-peak{text-decoration:underline}#clarbar.clarity-peak,#clarBar.clarity-peak{outline:1px solid #64dfdf}}
+
+/* PROP-026 (council build 19): hydrogen-line lock highlight */
+.freq-locked{color:#64dfdf;text-shadow:0 0 8px rgba(100,223,223,.45);transition:color .3s,text-shadow .3s}
+@media (prefers-reduced-motion:reduce){.freq-locked{transition:none;text-shadow:none;text-decoration:underline}}
