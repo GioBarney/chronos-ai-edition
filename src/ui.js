@@ -146,6 +146,7 @@ function updateUI(info, now) {
   if (!$('dev').hidden) $('devkv').textContent = `test mode ${s.free ? 'on' : 'off'} · caution ${s.caution.toFixed(1)} · risk ${s.risk.toFixed(1)} · target ${info.tgt.toFixed(4)} MHz · window ±${(info.band * 1000).toFixed(1)} kHz`;
   syncBuild12Visuals();
   syncBuild13Visuals();
+  syncBuild14Visuals();
   syncBuild10Visuals(); // after all renders so it reads this frame's DOM and post-payday state
 }
 function buildStations() {
@@ -429,4 +430,15 @@ function syncBuild13Visuals() {
   const r = s.free ? 1 : Math.min(1, s.photons / PHASE3_PHOTONS), m = s.free ? 1 : Math.min(1, s.money / PHASE3_MONEY), i = s.st.interf.n >= 1 ? 1 : 0;
   const pct = Math.floor((r + m + i) / 3 * 100);
   pill.textContent = pct + '% ready'; pill.title = 'Photons, grant funds and an Interferometer';
+  pill.classList.toggle('ps-ready-full', pct >= 100); // PROP-021
+}
+
+// PROP-021 (council build 14): endings collection counter. Counts real seen ending IDs. Visual only, no save changes.
+function syncBuild14Visuals() {
+  const box = $('endingsBox'); if (!box || box.hidden) return;
+  let pill = box.querySelector('.endings-seen-pill');
+  if (!pill) { pill = document.createElement('span'); pill.className = 'endings-seen-pill'; box.querySelector('.label').appendChild(pill); }
+  const seen = ENDINGS.filter(e => s.endingsSeen && s.endingsSeen[e.id]).length;
+  pill.textContent = seen + ' / ' + ENDINGS.length + ' seen'; pill.title = 'Endings you have played';
+  pill.classList.toggle('all-seen', seen >= ENDINGS.length);
 }
