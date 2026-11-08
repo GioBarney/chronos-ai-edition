@@ -148,6 +148,7 @@ function updateUI(info, now) {
   syncBuild13Visuals();
   syncBuild14Visuals();
   syncBuild15Visuals();
+  syncBuild16Visuals(now);
   syncBuild10Visuals(); // after all renders so it reads this frame's DOM and post-payday state
 }
 function buildStations() {
@@ -442,6 +443,15 @@ function syncBuild14Visuals() {
   const seen = ENDINGS.filter(e => s.endingsSeen && s.endingsSeen[e.id]).length;
   pill.textContent = seen + ' / ' + ENDINGS.length + ' seen'; pill.title = 'Endings you have played';
   pill.classList.toggle('all-seen', seen >= ENDINGS.length);
+}
+
+// PROP-023 (council build 16): final-10s warning cue on the active photon surge tag. Visual only, no save changes.
+function syncBuild16Visuals(now) {
+  const st = $('surgeTag'); if (!st) return;
+  const on = Number.isFinite(s.surgeUntil) && s.surgeUntil > now;
+  const rem = on ? Math.ceil((s.surgeUntil - now) / 1000) : 0;
+  st.classList.toggle('surge-ending', on && rem <= 10);
+  if (on) st.title = `Photon surge ends in ${rem}s`; else st.removeAttribute('title');
 }
 
 // PROP-022 (council build 15): each owned station shows its percentage share of total station output (payout per cycle second). Visual only, no save changes.
