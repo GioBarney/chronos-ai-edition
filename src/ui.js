@@ -147,6 +147,7 @@ function updateUI(info, now) {
   syncBuild12Visuals();
   syncBuild13Visuals();
   syncBuild14Visuals();
+  syncBuild15Visuals();
   syncBuild10Visuals(); // after all renders so it reads this frame's DOM and post-payday state
 }
 function buildStations() {
@@ -441,4 +442,18 @@ function syncBuild14Visuals() {
   const seen = ENDINGS.filter(e => s.endingsSeen && s.endingsSeen[e.id]).length;
   pill.textContent = seen + ' / ' + ENDINGS.length + ' seen'; pill.title = 'Endings you have played';
   pill.classList.toggle('all-seen', seen >= ENDINGS.length);
+}
+
+// PROP-022 (council build 15): each owned station shows its percentage share of total station output (payout per cycle second). Visual only, no save changes.
+function syncBuild15Visuals() {
+  if (!rt.stEl) return;
+  const out = {}; let tot = 0;
+  STATIONS.forEach(st => { const o = s.st[st.id]; if (!o || !o.n) return; const v = payout(st) / Math.max(0.05, cycleSecs(st)); out[st.id] = v; tot += v; });
+  STATIONS.forEach(st => { const e = rt.stEl[st.id]; if (!e) return;
+    let b = e.row.querySelector('.st-share-pct');
+    if (!(st.id in out) || tot <= 0) { if (b) b.remove(); return; }
+    if (!b) { b = document.createElement('span'); b.className = 'st-share-pct'; e.ms.after(b); }
+    const pct = Math.round(out[st.id] / tot * 100), txt = pct + '%';
+    if (b.textContent !== txt) { b.textContent = txt; b.title = 'Share of total station output: ' + txt; }
+    b.classList.toggle('st-share-lead', pct >= 50); });
 }
