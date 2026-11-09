@@ -229,6 +229,7 @@ canvas{display:block;width:100%;max-width:100%}
 .morale-pip[data-morale="mid"]{background:#f4c542}
 .morale-pip[data-morale="low"]{background:#ff6b6b;animation:pipPulse 1.6s ease-in-out infinite}
 @keyframes pipPulse{0%,100%{opacity:1}50%{opacity:.4}}
+.crew-idle-hint #payroll{text-decoration:underline dotted;text-underline-offset:3px}
 .payroll-warn{box-shadow:inset 0 0 0 1px rgba(255,107,107,.55)}
 .prog i.bar-active{background-image:repeating-linear-gradient(115deg,rgba(255,255,255,.18) 0 8px,rgba(255,255,255,0) 8px 20px),linear-gradient(90deg,var(--signal),var(--anomaly));background-size:40px 100%,100% 100%;animation:barShimmer 1.8s linear infinite}
 @keyframes barShimmer{to{background-position:40px 0,0 0}}
