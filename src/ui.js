@@ -484,14 +484,14 @@ function syncBuild18Visuals(info) {
 }
 
 // PROP-028 (council build 21): progress tooltips on the decoder count, funding reputation (papers) and daily transmission box. Visual only, no save changes.
-// The proposal named #pkts/#papers; the real elements are #pcount (packets decoded) and #repu (reputation, which grows with papers).
+// The proposal named #pkts/#papers; the real elements are #pcount (packets decoded) and the "Write a paper" row name #paperName (reputation label left untouched).
 function syncBuild21Visuals() {
   const set = (el, txt) => { if (!el) return; if (txt) { if (el.title !== txt) el.title = txt; } else el.removeAttribute('title'); };
   const n = Math.max(0, Math.min(PACKETS.length, Math.floor(s.packet) || 0));
   set($('pcount'), n >= 1 ? `Signal packets decoded: ${n} / ${PACKETS.length}` + (n >= PACKETS.length ? ' \u2014 the whole transmission is in' : ' (each decode opens a new log and part)') : '');
   const p = Math.max(0, Math.floor(s.papers) || 0);
-  set($('repu'), p >= 5 ? `Published papers: ${p} \u2014 Bureaucrat ending paper threshold met (5+ papers)`
-    : p >= 1 ? `Published papers: ${p} / 5 toward Bureaucrat ending threshold (each paper raises reputation)` : '');
+  set($('paperName'), p >= 5 ? `Published papers: ${p} \u2014 Bureaucrat ending paper threshold met (5+ papers)`
+    : p >= 1 ? `Published papers: ${p} / 5 toward Bureaucrat ending threshold (each paper also raises reputation)` : '');
   const d = Math.max(0, Math.floor(s.dailyTxs) || 0), bonus = '(90%+ Clarity grants 10-min photon bonus)';
   set($('dailyTxBox'), (s.endingsSeen && s.endingsSeen.secret) ? `Daily Transmissions logged: ${d} \u2014 1420.336 MHz harmonic corridor archived ${bonus}`
     : d >= 3 ? `Daily Transmissions logged: ${d} \u2014 deep-band harmonic ephemeris unlocked in operator logs ${bonus}`
