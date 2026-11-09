@@ -29,6 +29,7 @@ Play it by opening `index.html` in a browser. No build step.
 | `src/crew.js` | Crew, hiring, interviews, payday, test tools |
 | `src/boot.js` | Main loop and startup |
 | `tools/pacing.js` | Pacing audit: `node tools/pacing.js` prints the day a laid-back and an optimizer player reach each phase (not shipped in the game) |
+| `tools/playtest.js` | Timing playtest bot: `node tools/playtest.js [days] [seed] [laid|opt|both]` plays a whole run against the real `tick()` and `catchUp()` with a fake clock and prints the day each milestone is reached (not shipped in the game) |
 
 Scripts are plain (non-module) and load in that order, sharing top-level names.
 
