@@ -153,6 +153,7 @@ function updateUI(info, now) {
   syncBuild18Visuals(info);
   syncBuild19Visuals(info);
   syncBuild20Visuals(now);
+  syncBuild21Visuals();
   syncBuild10Visuals(); // after all renders so it reads this frame's DOM and post-payday state
 }
 function buildStations() {
@@ -480,6 +481,21 @@ function syncBuild18Visuals(info) {
   const pc = v.toFixed(1) + '%';
   c.title = v >= 95 ? `Peak clarity (${pc}) \u2014 Ouroboros threshold met (at least 95%) and Daily TX photon bonus active (at least 90%)`
     : `High clarity (${pc}) \u2014 Daily TX photon bonus active (at least 90%); Ouroboros threshold at 95%`;
+}
+
+// PROP-028 (council build 21): progress tooltips on the decoder count, funding reputation (papers) and daily transmission box. Visual only, no save changes.
+// The proposal named #pkts/#papers; the real elements are #pcount (packets decoded) and #repu (reputation, which grows with papers).
+function syncBuild21Visuals() {
+  const set = (el, txt) => { if (!el) return; if (txt) { if (el.title !== txt) el.title = txt; } else el.removeAttribute('title'); };
+  const n = Math.max(0, Math.min(PACKETS.length, Math.floor(s.packet) || 0));
+  set($('pcount'), n >= 1 ? `Signal packets decoded: ${n} / ${PACKETS.length}` + (n >= PACKETS.length ? ' \u2014 the whole transmission is in' : ' (each decode opens a new log and part)') : '');
+  const p = Math.max(0, Math.floor(s.papers) || 0);
+  set($('repu'), p >= 5 ? `Published papers: ${p} \u2014 Bureaucrat ending paper threshold met (5+ papers)`
+    : p >= 1 ? `Published papers: ${p} / 5 toward Bureaucrat ending threshold (each paper raises reputation)` : '');
+  const d = Math.max(0, Math.floor(s.dailyTxs) || 0), bonus = '(90%+ Clarity grants 10-min photon bonus)';
+  set($('dailyTxBox'), (s.endingsSeen && s.endingsSeen.secret) ? `Daily Transmissions logged: ${d} \u2014 1420.336 MHz harmonic corridor archived ${bonus}`
+    : d >= 3 ? `Daily Transmissions logged: ${d} \u2014 deep-band harmonic ephemeris unlocked in operator logs ${bonus}`
+    : `Daily Transmissions logged: ${d} / 3 toward deep-band harmonic ephemeris notes ${bonus}`);
 }
 
 // PROP-027 (council build 20): live percent-complete and time-left tooltips on active decode, paper and grant progress. Visual only, no save changes.
