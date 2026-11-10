@@ -155,6 +155,7 @@ function updateUI(info, now) {
   syncBuild20Visuals(now);
   syncBuild21Visuals();
   syncBuild22Visuals();
+  syncBuild23Visuals();
   syncBuild10Visuals(); // after all renders so it reads this frame's DOM and post-payday state
 }
 function buildStations() {
@@ -551,4 +552,17 @@ function syncBuild15Visuals() {
     const pct = Math.round(out[st.id] / tot * 100), txt = pct + '%';
     if (b.textContent !== txt) { b.textContent = txt; b.title = 'Share of total station output: ' + txt; }
     b.classList.toggle('st-share-lead', pct >= 50); });
+}
+
+// PROP-030 (council build 23): station milestone strip hover shows progress, speed multiplier and units to the next tier. Visual only, no save changes.
+function syncBuild23Visuals() {
+  if (!rt.stEl) return;
+  STATIONS.forEach(st => { const e = rt.stEl[st.id], o = s.st[st.id]; if (!e || !e.ms) return;
+    const n = o && Number.isFinite(o.n) ? o.n : 0;
+    if (n < 1) { e.ms.removeAttribute('title'); e.ms.classList.remove('st-ms-max'); return; }
+    const c = msCount(n), nm = nextMs(n), mult = Math.pow(2, c);
+    const txt = nm ? `Milestones: ${c} / ${MILESTONES.length} complete (\u00d7${mult} speed) \u00b7 Next \u00d72 tier at ${nm} owned (${nm - n} more needed)`
+      : `Milestones: ${MILESTONES.length} / ${MILESTONES.length} complete (\u00d7${mult} speed) \u00b7 Max tier reached (${MILESTONES[MILESTONES.length - 1]}+ owned)`;
+    if (e.ms.title !== txt) e.ms.title = txt;
+    e.ms.classList.toggle('st-ms-max', !nm); });
 }

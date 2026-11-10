@@ -265,3 +265,6 @@ canvas{display:block;width:100%;max-width:100%}
 /* PROP-026 (council build 19): hydrogen-line lock highlight */
 .freq-locked{color:#64dfdf;text-shadow:0 0 8px rgba(100,223,223,.45);transition:color .3s,text-shadow .3s}
 @media (prefers-reduced-motion:reduce){.freq-locked{transition:none;text-shadow:none;text-decoration:underline}}
+
+.st-ms{cursor:help}
+.st-ms.st-ms-max{color:var(--signal);border-bottom:1px solid currentColor}
