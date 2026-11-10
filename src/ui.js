@@ -154,6 +154,7 @@ function updateUI(info, now) {
   syncBuild19Visuals(info);
   syncBuild20Visuals(now);
   syncBuild21Visuals();
+  syncBuild22Visuals();
   syncBuild10Visuals(); // after all renders so it reads this frame's DOM and post-payday state
 }
 function buildStations() {
@@ -481,6 +482,18 @@ function syncBuild18Visuals(info) {
   const pc = v.toFixed(1) + '%';
   c.title = v >= 95 ? `Peak clarity (${pc}) \u2014 Ouroboros threshold met (at least 95%) and Daily TX photon bonus active (at least 90%)`
     : `High clarity (${pc}) \u2014 Daily TX photon bonus active (at least 90%); Ouroboros threshold at 95%`;
+}
+
+// PROP-029 (council build 22): crew roster assignment summary tooltip on the payroll label, plus a soft hint on the crew panel while a worker is unassigned. Visual only, no save changes.
+function syncBuild22Visuals() {
+  const box = $('crewPanel'), pay = $('payroll'); if (!box || !pay) return;
+  const crew = Array.isArray(s.crew) ? s.crew : [];
+  const idle = crew.filter(w => !w.job).length, work = crew.length - idle;
+  box.classList.toggle('crew-idle-hint', !!s.funded && idle > 0);
+  if (!crew.length) { pay.removeAttribute('title'); return; }
+  const wage = crew.reduce((a, w) => a + (Number.isFinite(w.wage) ? w.wage : 0), 0);
+  const t = `Crew: ${work} assigned, ${idle} unassigned \u00b7 wages ${money(wage)}/day` + (idle ? ' \u2014 unassigned crew still draw wages; open a worker to give them a job' : '');
+  if (pay.title !== t) pay.title = t;
 }
 
 // PROP-028 (council build 21): progress tooltips on the decoder count, funding reputation (papers) and daily transmission box. Visual only, no save changes.
