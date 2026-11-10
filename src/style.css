@@ -268,3 +268,7 @@ canvas{display:block;width:100%;max-width:100%}
 
 .st-ms{cursor:help}
 .st-ms.st-ms-max{color:var(--signal);border-bottom:1px solid currentColor}
+
+/* PROP-031 (council build 24) */
+#echoesTag,#echoUpgs button{cursor:help}
+#echoesBox.echo-all-max{border-color:rgba(199,125,255,.45)}
