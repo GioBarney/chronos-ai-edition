@@ -157,6 +157,7 @@ function updateUI(info, now) {
   syncBuild22Visuals();
   syncBuild23Visuals();
   syncBuild24Visuals();
+  syncBuild26Visuals();
   syncBuild10Visuals(); // after all renders so it reads this frame's DOM and post-payday state
 }
 function buildStations() {
@@ -439,7 +440,7 @@ function syncBuild13Visuals() {
   if (!pill) { pill = document.createElement('span'); pill.className = 'ps-ready-pct'; box.querySelector('.label').appendChild(pill); }
   const r = s.free ? 1 : Math.min(1, s.photons / PHASE3_PHOTONS), m = s.free ? 1 : Math.min(1, s.money / PHASE3_MONEY), i = s.st.interf.n >= 1 ? 1 : 0;
   const pct = Math.floor((r + m + i) / 3 * 100);
-  pill.textContent = pct + '% ready'; pill.title = 'Photons, grant funds and an Interferometer';
+  pill.textContent = pct + '% ready'; // title set by syncBuild26Visuals (PROP-032)
   pill.classList.toggle('ps-ready-full', pct >= 100); // PROP-021
 }
 
@@ -582,4 +583,32 @@ function syncBuild24Visuals() {
       : `Echo upgrade: ${u.name} \u2014 Rank ${lv} / ${ECHO_MAX_LV} (Cost: ${echoCost(u.id)} Echo \u00b7 Available: ${echoFree()})\n${u.desc(lv)}`); });
   setT(box, ranks >= total ? `Echo upgrades: ${total} / ${total} total ranks unlocked (all maxed)` : `Echo upgrades: ${ranks} / ${total} total ranks unlocked`);
   box.classList.toggle('echo-all-max', ranks >= total);
+}
+
+// PROP-032 (council build 26): Phase tag status tooltip and Phase III per-gate breakdown. Visual only, no save changes.
+// Test mode (s.free) waives the photon and money costs but never the Interferometer gate, matching canPhase3().
+function syncBuild26Visuals() {
+  const setT = (el, v) => { if (!el) return; if (!v) { if (el.hasAttribute('title')) el.removeAttribute('title'); } else if (el.title !== v) el.title = v; };
+  const ph = s.phase || 1, box = $('phaseShiftBox');
+  const P = Number.isFinite(s.photons) ? Math.max(0, s.photons) : 0, M = Number.isFinite(s.money) ? Math.max(0, s.money) : 0;
+  const I = s.st && s.st.interf && Number.isFinite(s.st.interf.n) ? s.st.interf.n : 0;
+  let tag = '';
+  if (ph >= 3) tag = `${PHASE_NAMES[3]} active \u2014 all station cycles run \u00d72 faster`;
+  else if (ph === 2) tag = `${PHASE_NAMES[2]} (\u00d71 station speed) \u2014 Phase III gates: ` +
+    (s.free ? 'photons and funds waived (test mode)' : `photons ${Math.floor(Math.min(1, P / PHASE3_PHOTONS) * 100)}% \u00b7 funds ${Math.floor(Math.min(1, M / PHASE3_MONEY) * 100)}%`) +
+    ` \u00b7 Interferometer ${Math.min(1, I)}/1`;
+  else { const n = Math.max(0, Math.min(PACKETS.length, Math.floor(s.packet) || 0));
+    tag = `${PHASE_NAMES[1]} (\u00d71 station speed) \u2014 decode all ${PACKETS.length} signal packets (${n} / ${PACKETS.length} decoded) to unlock Phase II and the $50,000 grant`; }
+  setT($('phaseTag'), tag);
+  const targets = box ? [box, $('psBtn'), box.querySelector('.ps-ready-pct')] : [];
+  if (ph !== 2 || !box) { targets.forEach(el => setT(el, '')); return; }
+  const line = (name, have, need, fmtFn) => have >= need ? `\u2713 ${name}: ${fmtFn(have)} / ${fmtFn(need)}` : `\u2717 ${name}: ${fmtFn(have)} / ${fmtFn(need)} (${fmtFn(need - have)} short)`;
+  const rows = [
+    s.free ? '\u2713 Photons: waived (test mode)' : line('Photons', P, PHASE3_PHOTONS, big),
+    s.free ? '\u2713 Funds: waived (test mode)' : line('Funds (total cash)', M, PHASE3_MONEY, money),
+    line('Interferometer', Math.min(1, I), 1, x => String(Math.floor(x)))];
+  const txt = canPhase3()
+    ? `Ready to synchronize the Deep-Time Array (\u00d72 station speed).${s.free ? '' : ` Advancing spends ${big(PHASE3_PHOTONS)} photons and ${money(PHASE3_MONEY)}.`}\n` + rows.join('\n')
+    : `Phase III gates${s.free ? '' : ' (photons and cash are spent when you advance)'}:\n` + rows.join('\n');
+  targets.forEach(el => setT(el, txt));
 }

@@ -271,4 +271,6 @@ canvas{display:block;width:100%;max-width:100%}
 
 /* PROP-031 (council build 24) */
 #echoesTag,#echoUpgs button{cursor:help}
+/* PROP-032 (council build 26) */
+#phaseTag,#phaseShiftBox,.ps-ready-pct{cursor:help}
 #echoesBox.echo-all-max{border-color:rgba(199,125,255,.45)}
