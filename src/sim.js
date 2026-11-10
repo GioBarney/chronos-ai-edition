@@ -1,5 +1,22 @@
 'use strict';
 /* ---------- simulation ---------- */
+// One station-cycle routine for live play (sec = frame dt) and offline catch-up (sec = time away).
+// With a runner the station loops and keeps any overflow, so several cycles can pay in one step;
+// without one, a manually started run finishes once and stops. Returns cycles paid.
+function advanceStation(st, sec) {
+  const o = s.st[st.id]; if (!o.n || !(sec > 0)) return 0;
+  if (s.funded && runnerOf(st.id)) {
+    const t = (o.run ? o.p : 0) + sec / cycleSecs(st), cyc = Math.floor(t);
+    o.p = t - cyc; o.run = true;
+    if (cyc > 0) { const pay = payout(st) * cyc; s.photons += pay; s.total += pay; }
+    return cyc;
+  }
+  if (!o.run) return 0;
+  o.p += sec / cycleSecs(st);
+  if (o.p < 1) return 0;
+  const pay = payout(st); o.p = 0; o.run = false; s.photons += pay; s.total += pay;
+  return 1;
+}
 function tick(dt, now) {
   if (s.funded && (s.phase || 1) < 2) s.phase = 2;
   s.drift += dt * driftMul();
@@ -43,10 +60,7 @@ function tick(dt, now) {
     rt.popAcc = Math.min(rt.popAcc + r * dt, step * 2);
     if (rt.popAcc >= step && now - rt.lastPop > 55) { rt.popAcc -= step; rt.lastPop = now; sfx.pop(); }
   } else rt.popAcc = 0;
-  for (const st of STATIONS) { const o = s.st[st.id]; if (!o.n) continue;
-    if (!o.run) { if (s.funded && runnerOf(st.id)) { o.run = true; o.p = 0; } else continue; }
-    o.p += dt / cycleSecs(st);
-    if (o.p >= 1) { const pay = payout(st); o.p = 0; o.run = false; s.photons += pay; s.total += pay; sfx.cash(); const e = rt.stEl && rt.stEl[st.id];
+  for (const st of STATIONS) { if (advanceStation(st, dt) > 0) { sfx.cash(); const e = rt.stEl && rt.stEl[st.id];
       if (e) { e.row.classList.add('flash'); setTimeout(() => e.row.classList.remove('flash'), 350); } } }
 
   if (s.decode && now >= s.decode.endAt) {

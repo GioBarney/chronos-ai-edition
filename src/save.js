@@ -25,10 +25,7 @@ function catchUp(gapMs) {
   const before = s.photons;
   const p = (passiveRate() + operatorRate()) * sec * echoMul();
   s.photons += p; s.total += p;
-  for (const st of STATIONS) { const o = s.st[st.id]; if (!o.n) continue;
-    if (s.funded && runnerOf(st.id)) { const t = o.p + sec / cycleSecs(st), cyc = Math.floor(t); o.p = t - cyc; o.run = true;
-      if (cyc > 0) { const pay = payout(st) * cyc; s.photons += pay; s.total += pay; } }
-    else if (o.run) { o.p += sec / cycleSecs(st); if (o.p >= 1) { const pay = payout(st); o.p = 0; o.run = false; s.photons += pay; s.total += pay; } } }
+  for (const st of STATIONS) advanceStation(st, sec);
   const got = s.photons - before;
   if (got >= 1) toast(`While you were away you collected ${big(got)} photons${gapMs > OFFLINE_CAP ? ' (12-hour buffer full)' : ''}.`);
 }
