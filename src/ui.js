@@ -156,6 +156,7 @@ function updateUI(info, now) {
   syncBuild21Visuals();
   syncBuild22Visuals();
   syncBuild23Visuals();
+  syncBuild24Visuals();
   syncBuild10Visuals(); // after all renders so it reads this frame's DOM and post-payday state
 }
 function buildStations() {
@@ -565,4 +566,20 @@ function syncBuild23Visuals() {
       : `Milestones: ${MILESTONES.length} / ${MILESTONES.length} complete (\u00d7${mult} speed) \u00b7 Max tier reached (${MILESTONES[MILESTONES.length - 1]}+ owned)`;
     if (e.ms.title !== txt) e.ms.title = txt;
     e.ms.classList.toggle('st-ms-max', !nm); });
+}
+
+// PROP-031 (council build 24): Echo prestige multiplier and echo upgrade rank tooltips. Visual only, no save changes.
+function syncBuild24Visuals() {
+  const setT = (el, v) => { if (!el) return; if (!v) { if (el.hasAttribute('title')) el.removeAttribute('title'); } else if (el.title !== v) el.title = v; };
+  const E = Number.isFinite(s.echoes) ? s.echoes : 0, L = Number.isFinite(s.loops) ? s.loops : 0;
+  setT($('echoesTag'), E >= 1 || L >= 1 ? `Echoes: ${E} (+${Math.round(E * ECHO_BONUS * 100)}% output, x${echoMul().toFixed(2)} multiplier) \u00b7 Completed loops: ${L}` : '');
+  const box = $('echoesBox'), w = $('echoUpgs'); if (!box || !w) return;
+  let ranks = 0; const total = ECHO_UPG.length * ECHO_MAX_LV;
+  ECHO_UPG.forEach(u => { ranks += Math.min(ECHO_MAX_LV, echoLv(u.id)); });
+  Array.from(w.children).forEach((b, i) => { const u = ECHO_UPG[i]; if (!u) return;
+    const lv = Math.min(ECHO_MAX_LV, echoLv(u.id));
+    setT(b, lv >= ECHO_MAX_LV ? `Echo upgrade: ${u.name} \u2014 Rank ${lv} / ${ECHO_MAX_LV} (MAXED)`
+      : `Echo upgrade: ${u.name} \u2014 Rank ${lv} / ${ECHO_MAX_LV} (Cost: ${echoCost(u.id)} Echo \u00b7 Available: ${echoFree()})\n${u.desc(lv)}`); });
+  setT(box, ranks >= total ? `Echo upgrades: ${total} / ${total} total ranks unlocked (all maxed)` : `Echo upgrades: ${ranks} / ${total} total ranks unlocked`);
+  box.classList.toggle('echo-all-max', ranks >= total);
 }
