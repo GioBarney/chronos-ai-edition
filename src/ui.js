@@ -161,6 +161,7 @@ function updateUI(info, now) {
   syncBuild27Visuals(now);
   syncBuild28Visuals();
   syncBuild29Visuals();
+  syncBuild30Visuals(now);
   syncBuild10Visuals(); // after all renders so it reads this frame's DOM and post-payday state
 }
 function buildStations() {
@@ -676,4 +677,26 @@ function syncBuild29Visuals() {
   const sum = owned ? `Stations: ${owned}/${STATIONS.length} active \u00b7 ${auto}/${owned} automated by Runners (they keep cycling live and offline)` : '';
   setT($('stations'), sum); setT($('boostTag'), sum);
   panel.classList.toggle('runner-all-active', owned > 0 && auto === owned);
+}
+
+// PROP-037 (council build 30): paper readiness glow and funding tooltips (paper, reputation, grants). Visual only, no save changes.
+// The proposal described papers as needing 2 buffered packets and a 120 * 1.33^n stipend; the real game charges photons
+// (paperCost) and pays paperPay(), and grant odds come from grantChance() (Grant writer crew), so the tooltips mirror those.
+function syncBuild30Visuals(now) {
+  const btn = $('paperBtn'); if (!btn) return;
+  const setT = (el, v) => { if (!el) return; if (!v) { if (el.hasAttribute('title')) el.removeAttribute('title'); } else if (el.title !== v) el.title = v; };
+  const funded = !!s.funded, p = Math.max(0, Math.floor(s.papers) || 0), r = repu();
+  const c = paperCost(), have = Number.isFinite(s.photons) ? s.photons : 0, ready = funded && !s.paper && have >= c;
+  btn.classList.toggle('paper-ready-glow', ready);
+  if (!funded) setT(btn, '');
+  else if (s.paper) { const left = Math.max(0, (s.paper.endAt - now) / 1000);
+    setT(btn, `Drafting paper ${p + 1}: ${dur(left)} left \u00b7 Pays ${money(s.paper.pay)} on publication`); }
+  else setT(btn, `${ready ? 'Ready to write' : `Need ${fmt(Math.max(0, c - have))} more photons`} (${fmt(Math.min(have, c))} / ${fmt(c)}) \u00b7 Takes ${dur(paperSecs())} \u00b7 Pays ${money(paperPay())}`
+    + (jobEff('paper') > 0 ? ' \u00b7 Paper writer drafts the next one automatically' : ''));
+  setT($('repu'), r > 0 || p > 0 ? `Reputation ${r.toFixed(1)}: ${p} published paper${p === 1 ? '' : 's'} + owned stations / 10 \u00b7 Raises the daily stipend (+15% each) and grant amounts (+10% each)`
+    + (funded ? ` \u00b7 Next paper pays ${money(paperPay())}` : '') : '');
+  const box = $('grants'); if (!box) return;
+  const id = Object.keys(s.apps || {})[0], a = id && s.apps[id], g = a && GRANTS.find(x => x.id === id);
+  setT(box, !funded ? '' : a ? `${g ? g.name : 'Grant'} under review: answer in ${dur(Math.max(0, (a.endAt - now) / 1000))} \u00b7 One application at a time`
+    : `Approval odds rise with a Grant writer on the crew (up to +20%) \u00b7 Reputation raises grant amounts`);
 }
