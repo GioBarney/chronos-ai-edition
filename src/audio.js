@@ -16,16 +16,47 @@ function loadSamples() {
       .catch(() => { /* Synth fallback stays active. */ });
   });
 }
+function cleanupSample(src, gain) {
+  if (src) { src.onended = null; try { src.disconnect(); } catch (_) {} }
+  if (gain) { try { gain.disconnect(); } catch (_) {} }
+}
 function playSample(name, volume = 1) {
   if (!AC || !SAMPLES[name] || !BUS[SAMPLE_BUS[name]]) return false;
+  let src = null, g = null;
   try {
-    const src = AC.createBufferSource(), g = AC.createGain();
+    src = AC.createBufferSource(); g = AC.createGain();
     src.buffer = SAMPLES[name]; g.gain.value = volume;
     src.connect(g).connect(BUS[SAMPLE_BUS[name]]);
+    src.onended = () => cleanupSample(src, g);
     src.start();
-    src.onended = () => { src.disconnect(); g.disconnect(); };
     return true;
-  } catch (_) { return false; }
+  } catch (_) {
+    if (src) { try { src.stop(); } catch (_) {} }
+    cleanupSample(src, g);
+    return false;
+  }
+}
+function playKnockSamples() {
+  if (!AC || !SAMPLES.knock || !BUS.alerts) return false;
+  const nodes = [];
+  try {
+    const start = AC.currentTime;
+    for (const delay of [0, 0.18, 0.39]) {
+      const src = AC.createBufferSource(), g = AC.createGain();
+      nodes.push({ src, g });
+      src.buffer = SAMPLES.knock; g.gain.value = 0.48;
+      src.connect(g).connect(BUS.alerts);
+      src.onended = () => cleanupSample(src, g);
+      src.start(start + delay);
+    }
+    return true;
+  } catch (_) {
+    for (const { src, g } of nodes) {
+      try { src.stop(); } catch (_) {}
+      cleanupSample(src, g);
+    }
+    return false;
+  }
 }
 const volOf = id => { const c = s.mix[id]; return c && c.on ? Math.pow(c.vol / 100, 2) : 0; };
 function applyMix() {
@@ -105,7 +136,7 @@ const sfx = {
     o.frequency.setValueAtTime(170, t); o.frequency.exponentialRampToValueAtTime(52, t + 0.14);
     env(g, 0.32, 0.004, 0.2, t); o.connect(g).connect(BUS.clicks); o.start(t); o.stop(t + 0.3); this.click(); },
   chips() { if (!playSample('chips1', 0.4)) this.pop(); },
-  knock() { if (!AC) return; if (SAMPLES.knock) { [0, 0.18, 0.39].forEach(delay => { const src = AC.createBufferSource(), g = AC.createGain(); src.buffer = SAMPLES.knock; g.gain.value = 0.48; src.connect(g).connect(BUS.alerts); src.start(AC.currentTime + delay); src.onended = () => { src.disconnect(); g.disconnect(); }; }); } else { [0, 0.18, 0.39].forEach(delay => tone(135, 0.08, 0.07, 'sine', delay, BUS.alerts)); } },
+  knock() { if (!AC) return; if (!playKnockSamples()) { [0, 0.18, 0.39].forEach(delay => tone(135, 0.08, 0.07, 'sine', delay, BUS.alerts)); } },
   glint() { [2093, 2637, 3136].forEach((f, i) => tone(f, 0.018, 1.4, 'sine', i * 0.09)); },
   glintCatch() { [1046.5, 1568, 2093, 2637].forEach((f, i) => { tone(f, 0.04, 1.5, 'sine', i * 0.07); tone(f * 2.76, 0.006, 0.6, 'sine', i * 0.07); }); },
   warn() { tone(988, 0.025, 0.22); },
