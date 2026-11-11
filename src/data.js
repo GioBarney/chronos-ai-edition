@@ -134,6 +134,7 @@ const ECHO_UPG = [
 ];
 const echoCost = id => 1 + echoLv(id);
 const PHASE3_PHOTONS = 5e6, PHASE3_MONEY = 250000;
+const PHASE3_TX = 21; // PROP-019 (council build 31): logged Daily Transmissions needed for Phase III. One per real day, so it sets a time floor.
 const DAILY_TX_PHOTON_MIN = 600, DAILY_TX_CLARITY = 25;
 let s = fresh();
 const rt = { holding: false, lastAng: null, limiterCut: false, cautionArmed: false, prevLocked: false,
