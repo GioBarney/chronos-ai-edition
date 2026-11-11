@@ -160,6 +160,7 @@ function updateUI(info, now) {
   syncBuild26Visuals();
   syncBuild27Visuals(now);
   syncBuild28Visuals();
+  syncBuild29Visuals();
   syncBuild10Visuals(); // after all renders so it reads this frame's DOM and post-payday state
 }
 function buildStations() {
@@ -652,4 +653,27 @@ function syncBuild28Visuals() {
   lb.classList.toggle('loop-ready', ready && !lb.hidden);
   setT(lb, ready ? `New Game+ ready: resets to Week 1 and grants +1 Echo (${(s.echoes || 0) + 1} total).\nKeeps ${ups} Echo upgrade level${ups === 1 ? '' : 's'} and your ${disc}.`
     : 'Complete any ending in this loop to unlock the New Game+ reset.');
+}
+
+// PROP-036 (council build 29): station cycle cadence and Runner automation tooltips, plus a panel summary. Visual only, no save changes.
+// Mirrors advanceStation(): a station loops on its own only while the lab is funded and a Runner is assigned to it.
+function syncBuild29Visuals() {
+  const panel = $('stPanel'); if (!rt.stEl || !panel) return;
+  const setT = (el, v) => { if (!el) return; if (!v) { if (el.hasAttribute('title')) el.removeAttribute('title'); } else if (el.title !== v) el.title = v; };
+  let owned = 0, auto = 0;
+  const phaseTxt = (s.phase || 1) >= 3 ? ' \u00b7 Phase III \u00d72' : '', echoTxt = echoMul() > 1 ? ` \u00b7 Echo \u00d7${echoMul().toFixed(2)} output` : '';
+  STATIONS.forEach((st, i) => { const e = rt.stEl[st.id], o = s.st[st.id]; if (!e || !o) return;
+    const n = Number.isFinite(o.n) ? o.n : 0;
+    if (n < 1 || !stOpen(i)) { setT(e.circ, ''); setT(e.bar, ''); return; }
+    owned++;
+    const secs = cycleSecs(st), cyc = secs < 60 ? secs.toFixed(2) + ' s' : dur(secs), p = o.run && Number.isFinite(o.p) ? Math.max(0, Math.min(1, o.p)) : 0, pct = Math.floor(p * 100);
+    const runner = !!(s.funded && runnerOf(st.id)); if (runner) auto++;
+    const eff = jobEff('st:' + st.id), crewTxt = runner && eff ? ` \u00b7 Runner \u00d7${(0.6 + 0.8 * eff).toFixed(2)} speed` : '';
+    const txt = runner
+      ? `Runner active: loops on its own, live and offline (${(1 / secs).toFixed(2)} cycles/s, ${cyc} per cycle, ${pct}% through this cycle)${crewTxt}${phaseTxt}${echoTxt}`
+      : `Manual mode: click Run once per ${cyc} cycle (${o.run ? pct + '% through this cycle' : 'idle'}) \u00b7 Assign a Runner to keep it cycling live and offline${phaseTxt}${echoTxt}`;
+    setT(e.circ, txt); setT(e.bar, txt); });
+  const sum = owned ? `Stations: ${owned}/${STATIONS.length} active \u00b7 ${auto}/${owned} automated by Runners (they keep cycling live and offline)` : '';
+  setT($('stations'), sum); setT($('boostTag'), sum);
+  panel.classList.toggle('runner-all-active', owned > 0 && auto === owned);
 }

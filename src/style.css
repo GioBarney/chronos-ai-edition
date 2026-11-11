@@ -283,3 +283,7 @@ canvas{display:block;width:100%;max-width:100%}
 #loopBtn.loop-ready{border-color:rgba(199,125,255,.6);animation:loopReady 2.4s ease-in-out infinite}
 @keyframes loopReady{0%,100%{box-shadow:0 0 0 0 rgba(199,125,255,0)}50%{box-shadow:0 0 12px 1px rgba(199,125,255,.35)}}
 @media (prefers-reduced-motion:reduce){#loopBtn.loop-ready{animation:none;box-shadow:0 0 0 1px rgba(199,125,255,.6)}}
+/* PROP-036 (council build 29): soft edge when every owned station has a Runner */
+#stPanel.runner-all-active{box-shadow:inset 0 0 0 1px rgba(110,231,183,.35);animation:runnerAll 3.2s ease-in-out infinite}
+@keyframes runnerAll{0%,100%{box-shadow:inset 0 0 0 1px rgba(110,231,183,.25)}50%{box-shadow:inset 0 0 0 1px rgba(110,231,183,.5)}}
+@media (prefers-reduced-motion:reduce){#stPanel.runner-all-active{animation:none}}
