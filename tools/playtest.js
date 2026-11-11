@@ -52,6 +52,8 @@ function run(profile, maxDays, seed) {
       if (s.paper && __clock >= s.paper.endAt) { s.money += s.paper.pay; s.papers++; s.paper = null; }
       GRANTS.forEach(g => { const a = s.apps[g.id]; if (a && __clock >= a.endAt) { if (a.ok) s.money += a.amt; delete s.apps[g.id]; } });
       processPaydays(__clock); resolveCrew(__clock); autoCrew();
+      // Daily Transmission: log one per real day once packet 1 is decoded (PROP-010; PROP-019 gates Phase III on PHASE3_TX of them)
+      if (s.packet >= 1 && dayNum(__clock) > s.dailyTxDay) { s.dailyTxDay = dayNum(__clock); s.dailyTxs = (s.dailyTxs || 0) + 1; }
       if (s.packet >= 7 && !s.funded) { s.funded = true; s.money += 50000; mark('funded (Phase II)', T); }
       // glints
       if (holdingNow && s.glint && s.glint !== glintSeen) { glintSeen = s.glint; if (Math.random() < P.glintCatch) catchGlint(); }
@@ -98,7 +100,7 @@ function run(profile, maxDays, seed) {
             if (s.stUp[st.id] < 5) { const uc = upCost(st), sc2 = payout(st) * 2 / cycleSecs(st) / uc; if (uc <= 0.2 * spare() && (!best || sc2 > best.score)) best = { st, c: uc, score: sc2, kind: 'u' }; } });
           if (best) { s.money -= best.c; if (best.kind === 'n') s.st[best.st.id].n++; else s.stUp[best.st.id]++; } }
         // Phase III
-        if ((s.phase || 1) === 2 && s.st.interf.n >= 1 && s.photons >= PHASE3_PHOTONS && s.money >= PHASE3_MONEY) { s.photons -= PHASE3_PHOTONS; s.money -= PHASE3_MONEY; s.phase = 3; mark('Phase III', T); }
+        if ((s.phase || 1) === 2 && s.st.interf.n >= 1 && s.photons >= PHASE3_PHOTONS && s.money >= PHASE3_MONEY && (s.dailyTxs || 0) >= PHASE3_TX) { s.photons -= PHASE3_PHOTONS; s.money -= PHASE3_MONEY; s.phase = 3; mark('Phase III', T); }
       }
     }
     if (s.packet >= 1) for (let p = 1; p <= s.packet; p++) mark('packet ' + p, T);
