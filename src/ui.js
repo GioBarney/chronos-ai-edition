@@ -159,6 +159,7 @@ function updateUI(info, now) {
   syncBuild24Visuals();
   syncBuild26Visuals();
   syncBuild27Visuals(now);
+  syncBuild28Visuals();
   syncBuild10Visuals(); // after all renders so it reads this frame's DOM and post-payday state
 }
 function buildStations() {
@@ -631,3 +632,24 @@ function syncBuild27Visuals(now) {
   if (knob) knob.classList.toggle('glint-urgent', urgent);
 }
 
+
+// PROP-035 (council build 28): endings status tooltips and New Game+ loop preview. Visual only, no save changes.
+function syncBuild28Visuals() {
+  const setT = (el, v) => { if (el && el.title !== v) el.title = v; };
+  const seenN = ENDINGS.filter(e => s.endingsSeen && s.endingsSeen[e.id]).length, disc = `${seenN} / ${ENDINGS.length} endings discovered`;
+  const echoTxt = n => n > 0 ? `+${n} Echo${n > 1 ? 'es' : ''}` : 'no Echoes';
+  const box = $('endingsBox');
+  if (box && !box.hidden) {
+    const btns = $('endBtns').children;
+    ENDINGS.forEach((e, i) => { const b = btns[i]; if (!b) return;
+      const ready = endingAvailable(e), seen = !!(s.endingsSeen && s.endingsSeen[e.id]);
+      setT(b, ready ? `READY in this loop \u00b7 Click to open the scorecard.\n${seen ? 'Seen before: completing it again re-qualifies the New Game+ reset.' : `First completion awards ${echoTxt(e.echoes)} and unlocks the New Game+ reset.`}`
+        : seen ? `Seen in a prior loop (history only) \u00b7 Requalify in this loop to unlock the New Game+ reset.\n${e.hint}`
+        : `Locked \u00b7 ${e.hint}\nFirst completion awards ${echoTxt(e.echoes)} \u00b7 ${disc}`); });
+  }
+  const lb = $('loopBtn'); if (!lb) return;
+  const ready = !!s.loopReady, ups = ECHO_UPG.reduce((a, u) => a + echoLv(u.id), 0);
+  lb.classList.toggle('loop-ready', ready && !lb.hidden);
+  setT(lb, ready ? `New Game+ ready: resets to Week 1 and grants +1 Echo (${(s.echoes || 0) + 1} total).\nKeeps ${ups} Echo upgrade level${ups === 1 ? '' : 's'} and your ${disc}.`
+    : 'Complete any ending in this loop to unlock the New Game+ reset.');
+}
