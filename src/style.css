@@ -274,3 +274,8 @@ canvas{display:block;width:100%;max-width:100%}
 /* PROP-032 (council build 26) */
 #phaseTag,#phaseShiftBox,.ps-ready-pct{cursor:help}
 #echoesBox.echo-all-max{border-color:rgba(199,125,255,.45)}
+/* PROP-033 (council build 27): glint final-5s pulse */
+.btn.glint.glint-urgent{animation:glintUrgent .9s ease-in-out infinite}
+.knob.glint-urgent{box-shadow:0 0 0 2px color-mix(in srgb,var(--anomaly) 60%,transparent),0 0 16px color-mix(in srgb,var(--anomaly) 40%,transparent)}
+@keyframes glintUrgent{0%,100%{opacity:1}50%{opacity:.62}}
+@media (prefers-reduced-motion:reduce){.btn.glint.glint-urgent{animation:none;outline:2px solid var(--anomaly);outline-offset:2px}}

@@ -158,6 +158,7 @@ function updateUI(info, now) {
   syncBuild23Visuals();
   syncBuild24Visuals();
   syncBuild26Visuals();
+  syncBuild27Visuals(now);
   syncBuild10Visuals(); // after all renders so it reads this frame's DOM and post-payday state
 }
 function buildStations() {
@@ -612,3 +613,21 @@ function syncBuild26Visuals() {
     : `Phase III gates${s.free ? '' : ' (photons and cash are spent when you advance)'}:\n` + rows.join('\n');
   targets.forEach(el => setT(el, txt));
 }
+
+// PROP-033 (council build 27): glint countdown tooltip, dial-operator auto-catch note, and a soft pulse in the last 5 s. Visual only, no save changes.
+function syncBuild27Visuals(now) {
+  const gb = $('glintBtn'), knob = $('knob'); if (!gb) return;
+  const setT = (el, v) => { if (!el) return; if (!v) { if (el.hasAttribute('title')) el.removeAttribute('title'); } else if (el.title !== v) el.title = v; };
+  const g = s.glint, until = g && Number.isFinite(g.until) ? g.until : 0, live = until > 0 && now <= until;
+  const oper = jobEff('dial') > 0;
+  const autoTxt = oper ? `Dial operator on duty: a missed glint is auto-caught at ${Math.round(GLINT_AUTO * 100)}% value.` : 'No dial operator: a missed glint fades with no reward.';
+  let urgent = false;
+  if (live) {
+    const left = Math.max(0, (until - now) / 1000); urgent = left <= 5;
+    const reward = g.kind === 'surge' ? `×${SURGE_MUL} photons for ${Math.round(SURGE_MS / 1000)} s` : 'signal clarity refilled to 100%';
+    setT(gb, `Anomaly glint: ${Math.ceil(left)} s left. Catch it for ${reward}.\n${autoTxt}`);
+  } else setT(gb, oper ? `No glint right now (one shimmers every ${Math.round(GLINT_MIN / 60)}–${Math.round(GLINT_MAX / 60)} min of play). ${autoTxt}` : '');
+  gb.classList.toggle('glint-urgent', urgent);
+  if (knob) knob.classList.toggle('glint-urgent', urgent);
+}
+
