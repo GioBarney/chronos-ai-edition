@@ -279,3 +279,7 @@ canvas{display:block;width:100%;max-width:100%}
 .knob.glint-urgent{box-shadow:0 0 0 2px color-mix(in srgb,var(--anomaly) 60%,transparent),0 0 16px color-mix(in srgb,var(--anomaly) 40%,transparent)}
 @keyframes glintUrgent{0%,100%{opacity:1}50%{opacity:.62}}
 @media (prefers-reduced-motion:reduce){.btn.glint.glint-urgent{animation:none;outline:2px solid var(--anomaly);outline-offset:2px}}
+/* PROP-035 (council build 28): New Game+ ready glow */
+#loopBtn.loop-ready{border-color:rgba(199,125,255,.6);animation:loopReady 2.4s ease-in-out infinite}
+@keyframes loopReady{0%,100%{box-shadow:0 0 0 0 rgba(199,125,255,0)}50%{box-shadow:0 0 12px 1px rgba(199,125,255,.35)}}
+@media (prefers-reduced-motion:reduce){#loopBtn.loop-ready{animation:none;box-shadow:0 0 0 1px rgba(199,125,255,.6)}}
