@@ -23,7 +23,7 @@ function run(profile, maxDays) {
   const P = PROFILES[profile];
   const stubs = `const matchMedia = () => ({ matches: false }); const document = { getElementById: () => ({}) };`;
   const driver = `
-  const out = { phase2: null, phase3: null, ending: null, log: [] };
+  const out = { phase2: null, phase3: null, ending: null, log: [] }; let txDay = 0; s.dailyTxs = 0;
   s.startedAt = 0; s.seenIntro = true;
   const DAY = 86400, STEP = 30;
   const hrOf = t => (t % DAY) / 3600, dayOf = t => Math.floor(t / DAY);
@@ -109,13 +109,15 @@ function run(profile, maxDays) {
       for (const g of GRANTS) { const a = s.apps[g.id]; if (a && t >= a.endAt) { s.money += a.ok * a.amt; delete s.apps[g.id]; } }
       if (sess && lastStipDay < day && s.funded) { s.money += stipendAmt(); lastStipDay = day; }
     }
+    // PROP-019: log one Daily Transmission per day in a session once the first packet is decoded (game: dayNum(now) > s.dailyTxDay)
+    if (sess && s.packet >= 1 && day + 1 > txDay) { txDay = day + 1; s.dailyTxs++; }
     if (open) { trySpendPhotons(); }
     if (open) { startPaperIfPossible(open); startGrant(open); tryBuy(); tryHire();
       if (s.funded && !hasCheque() && s.money > 20000) { s.crew.push({ id: 0, cheque: true, job: 'cool', wage: 2000, morale: 90, raises: 0, st: { work: 8, tech: 9, writing: 3, loyalty: 10, ambition: 1 } }); } }
     // payday at each day rollover
     if (s.funded && day > lastPay) { lastPay = day; s.money -= payrollPerDay(); if (s.money < 0) s.money = 0; }
     // phase III
-    if (s.phase === 2 && s.st.interf.n >= 1 && s.photons >= PHASE3_PHOTONS && s.money >= PHASE3_MONEY && open) { s.photons -= PHASE3_PHOTONS; s.money -= PHASE3_MONEY; s.phase = 3; out.phase3 = t / DAY; }
+    if (s.phase === 2 && s.st.interf.n >= 1 && s.photons >= PHASE3_PHOTONS && s.money >= PHASE3_MONEY && s.dailyTxs >= PHASE3_TX && open) { s.photons -= PHASE3_PHOTONS; s.money -= PHASE3_MONEY; s.phase = 3; out.phase3 = t / DAY; }
     if (s.phase >= 3 && !out.ending && open && (s.papers >= 5 || s.caution >= 5)) { out.ending = t / DAY; break; }
     t += STEP;
   }

@@ -159,6 +159,9 @@ function updateUI(info, now) {
   syncBuild24Visuals();
   syncBuild26Visuals();
   syncBuild27Visuals(now);
+  syncBuild28Visuals();
+  syncBuild29Visuals();
+  syncBuild30Visuals(now);
   syncBuild10Visuals(); // after all renders so it reads this frame's DOM and post-payday state
 }
 function buildStations() {
@@ -301,11 +304,11 @@ $('dtxBtn').onclick = () => { const now = Date.now(); if (s.packet < 1 || !(s.fr
 
 /* phase shifts (PROP-011) */
 const PHASE_NAMES = ['', 'Phase I \u00b7 Lone Dish', 'Phase II \u00b7 Grant Array', 'Phase III \u00b7 Deep-Time Array'];
-const canPhase3 = () => (s.phase || 1) === 2 && s.st.interf.n >= 1 && (s.free || (s.photons >= PHASE3_PHOTONS && s.money >= PHASE3_MONEY));
+const canPhase3 = () => (s.phase || 1) === 2 && s.st.interf.n >= 1 && (s.free || (s.photons >= PHASE3_PHOTONS && s.money >= PHASE3_MONEY && (s.dailyTxs || 0) >= PHASE3_TX)); // PROP-019: test mode also waives the transmission count
 function renderPhase() {
   const ph = s.phase || 1; $('phaseTag').textContent = PHASE_NAMES[ph]; document.documentElement.dataset.phase = ph;
   const box = $('phaseShiftBox'); box.hidden = ph !== 2; if (box.hidden) return; // PROP-020 review: visible all of Phase II so the readiness pill guides the Interferometer step; button stays gated by canPhase3()
-  $('psText').textContent = `Spend ${big(PHASE3_PHOTONS)} photons and ${money(PHASE3_MONEY)} to bring the baseline online. All station cycles run 2\u00d7 faster and the endgame opens.`;
+  $('psText').textContent = `Spend ${big(PHASE3_PHOTONS)} photons and ${money(PHASE3_MONEY)} to bring the baseline online. All station cycles run 2\u00d7 faster and the endgame opens.` + (s.free || (s.dailyTxs || 0) >= PHASE3_TX ? '' : ` The array also needs ${PHASE3_TX} logged Daily Transmissions (${s.dailyTxs || 0} so far).`);
   $('psBtn').disabled = !canPhase3();
 }
 $('psBtn').onclick = () => { if (!canPhase3()) return; if (!s.free) { s.photons -= PHASE3_PHOTONS; s.money -= PHASE3_MONEY; }
@@ -440,7 +443,8 @@ function syncBuild13Visuals() {
   let pill = box.querySelector('.ps-ready-pct');
   if (!pill) { pill = document.createElement('span'); pill.className = 'ps-ready-pct'; box.querySelector('.label').appendChild(pill); }
   const r = s.free ? 1 : Math.min(1, s.photons / PHASE3_PHOTONS), m = s.free ? 1 : Math.min(1, s.money / PHASE3_MONEY), i = s.st.interf.n >= 1 ? 1 : 0;
-  const pct = Math.floor((r + m + i) / 3 * 100);
+  const tx = s.free ? 1 : Math.min(1, (s.dailyTxs || 0) / PHASE3_TX); // PROP-019
+  const pct = Math.floor((r + m + i + tx) / 4 * 100);
   pill.textContent = pct + '% ready'; // title set by syncBuild26Visuals (PROP-032)
   pill.classList.toggle('ps-ready-full', pct >= 100); // PROP-021
 }
@@ -587,17 +591,18 @@ function syncBuild24Visuals() {
 }
 
 // PROP-032 (council build 26): Phase tag status tooltip and Phase III per-gate breakdown. Visual only, no save changes.
-// Test mode (s.free) waives the photon and money costs but never the Interferometer gate, matching canPhase3().
+// Test mode (s.free) waives the photon and money costs (and the PROP-019 transmission count) but never the Interferometer gate, matching canPhase3().
 function syncBuild26Visuals() {
   const setT = (el, v) => { if (!el) return; if (!v) { if (el.hasAttribute('title')) el.removeAttribute('title'); } else if (el.title !== v) el.title = v; };
   const ph = s.phase || 1, box = $('phaseShiftBox');
   const P = Number.isFinite(s.photons) ? Math.max(0, s.photons) : 0, M = Number.isFinite(s.money) ? Math.max(0, s.money) : 0;
   const I = s.st && s.st.interf && Number.isFinite(s.st.interf.n) ? s.st.interf.n : 0;
+  const TX = Number.isFinite(s.dailyTxs) ? Math.max(0, s.dailyTxs) : 0;
   let tag = '';
   if (ph >= 3) tag = `${PHASE_NAMES[3]} active \u2014 all station cycles run \u00d72 faster`;
   else if (ph === 2) tag = `${PHASE_NAMES[2]} (\u00d71 station speed) \u2014 Phase III gates: ` +
     (s.free ? 'photons and funds waived (test mode)' : `photons ${Math.floor(Math.min(1, P / PHASE3_PHOTONS) * 100)}% \u00b7 funds ${Math.floor(Math.min(1, M / PHASE3_MONEY) * 100)}%`) +
-    ` \u00b7 Interferometer ${Math.min(1, I)}/1`;
+    ` \u00b7 Interferometer ${Math.min(1, I)}/1` + (s.free ? '' : ` \u00b7 transmissions ${Math.min(PHASE3_TX, TX)}/${PHASE3_TX}`);
   else { const n = Math.max(0, Math.min(PACKETS.length, Math.floor(s.packet) || 0));
     tag = `${PHASE_NAMES[1]} (\u00d71 station speed) \u2014 decode all ${PACKETS.length} signal packets (${n} / ${PACKETS.length} decoded) to unlock Phase II and the $50,000 grant`; }
   setT($('phaseTag'), tag);
@@ -607,7 +612,8 @@ function syncBuild26Visuals() {
   const rows = [
     s.free ? '\u2713 Photons: waived (test mode)' : line('Photons', P, PHASE3_PHOTONS, big),
     s.free ? '\u2713 Funds: waived (test mode)' : line('Funds (total cash)', M, PHASE3_MONEY, money),
-    line('Interferometer', Math.min(1, I), 1, x => String(Math.floor(x)))];
+    line('Interferometer', Math.min(1, I), 1, x => String(Math.floor(x))),
+    s.free ? '\u2713 Daily Transmissions: waived (test mode)' : line('Daily Transmissions logged', Math.min(PHASE3_TX, TX), PHASE3_TX, x => String(Math.floor(x))) + (TX < PHASE3_TX ? ' \u2014 one arrives each real day' : '')];
   const txt = canPhase3()
     ? `Ready to synchronize the Deep-Time Array (\u00d72 station speed).${s.free ? '' : ` Advancing spends ${big(PHASE3_PHOTONS)} photons and ${money(PHASE3_MONEY)}.`}\n` + rows.join('\n')
     : `Phase III gates${s.free ? '' : ' (photons and cash are spent when you advance)'}:\n` + rows.join('\n');
@@ -631,3 +637,69 @@ function syncBuild27Visuals(now) {
   if (knob) knob.classList.toggle('glint-urgent', urgent);
 }
 
+
+// PROP-035 (council build 28): endings status tooltips and New Game+ loop preview. Visual only, no save changes.
+function syncBuild28Visuals() {
+  const setT = (el, v) => { if (el && el.title !== v) el.title = v; };
+  const seenN = ENDINGS.filter(e => s.endingsSeen && s.endingsSeen[e.id]).length, disc = `${seenN} / ${ENDINGS.length} endings discovered`;
+  const echoTxt = n => n > 0 ? `+${n} Echo${n > 1 ? 'es' : ''}` : 'no Echoes';
+  const box = $('endingsBox');
+  if (box && !box.hidden) {
+    const btns = $('endBtns').children;
+    ENDINGS.forEach((e, i) => { const b = btns[i]; if (!b) return;
+      const ready = endingAvailable(e), seen = !!(s.endingsSeen && s.endingsSeen[e.id]);
+      setT(b, ready ? `READY in this loop \u00b7 Click to open the scorecard.\n${seen ? 'Seen before: completing it again re-qualifies the New Game+ reset.' : `First completion awards ${echoTxt(e.echoes)} and unlocks the New Game+ reset.`}`
+        : seen ? `Seen in a prior loop (history only) \u00b7 Requalify in this loop to unlock the New Game+ reset.\n${e.hint}`
+        : `Locked \u00b7 ${e.hint}\nFirst completion awards ${echoTxt(e.echoes)} \u00b7 ${disc}`); });
+  }
+  const lb = $('loopBtn'); if (!lb) return;
+  const ready = !!s.loopReady, ups = ECHO_UPG.reduce((a, u) => a + echoLv(u.id), 0);
+  lb.classList.toggle('loop-ready', ready && !lb.hidden);
+  setT(lb, ready ? `New Game+ ready: resets to Week 1 and grants +1 Echo (${(s.echoes || 0) + 1} total).\nKeeps ${ups} Echo upgrade level${ups === 1 ? '' : 's'} and your ${disc}.`
+    : 'Complete any ending in this loop to unlock the New Game+ reset.');
+}
+
+// PROP-036 (council build 29): station cycle cadence and Runner automation tooltips, plus a panel summary. Visual only, no save changes.
+// Mirrors advanceStation(): a station loops on its own only while the lab is funded and a Runner is assigned to it.
+function syncBuild29Visuals() {
+  const panel = $('stPanel'); if (!rt.stEl || !panel) return;
+  const setT = (el, v) => { if (!el) return; if (!v) { if (el.hasAttribute('title')) el.removeAttribute('title'); } else if (el.title !== v) el.title = v; };
+  let owned = 0, auto = 0;
+  const phaseTxt = (s.phase || 1) >= 3 ? ' \u00b7 Phase III \u00d72' : '', echoTxt = echoMul() > 1 ? ` \u00b7 Echo \u00d7${echoMul().toFixed(2)} output` : '';
+  STATIONS.forEach((st, i) => { const e = rt.stEl[st.id], o = s.st[st.id]; if (!e || !o) return;
+    const n = Number.isFinite(o.n) ? o.n : 0;
+    if (n < 1 || !stOpen(i)) { setT(e.circ, ''); setT(e.bar, ''); return; }
+    owned++;
+    const secs = cycleSecs(st), cyc = secs < 60 ? secs.toFixed(2) + ' s' : dur(secs), p = o.run && Number.isFinite(o.p) ? Math.max(0, Math.min(1, o.p)) : 0, pct = Math.floor(p * 100);
+    const runner = !!(s.funded && runnerOf(st.id)); if (runner) auto++;
+    const eff = jobEff('st:' + st.id), crewTxt = runner && eff ? ` \u00b7 Runner \u00d7${(0.6 + 0.8 * eff).toFixed(2)} speed` : '';
+    const txt = runner
+      ? `Runner active: loops on its own, live and offline (${(1 / secs).toFixed(2)} cycles/s, ${cyc} per cycle, ${pct}% through this cycle)${crewTxt}${phaseTxt}${echoTxt}`
+      : `Manual mode: click Run once per ${cyc} cycle (${o.run ? pct + '% through this cycle' : 'idle'}) \u00b7 Assign a Runner to keep it cycling live and offline${phaseTxt}${echoTxt}`;
+    setT(e.circ, txt); setT(e.bar, txt); });
+  const sum = owned ? `Stations: ${owned}/${STATIONS.length} active \u00b7 ${auto}/${owned} automated by Runners (they keep cycling live and offline)` : '';
+  setT($('stations'), sum); setT($('boostTag'), sum);
+  panel.classList.toggle('runner-all-active', owned > 0 && auto === owned);
+}
+
+// PROP-037 (council build 30): paper readiness glow and funding tooltips (paper, reputation, grants). Visual only, no save changes.
+// The proposal described papers as needing 2 buffered packets and a 120 * 1.33^n stipend; the real game charges photons
+// (paperCost) and pays paperPay(), and grant odds come from grantChance() (Grant writer crew), so the tooltips mirror those.
+function syncBuild30Visuals(now) {
+  const btn = $('paperBtn'); if (!btn) return;
+  const setT = (el, v) => { if (!el) return; if (!v) { if (el.hasAttribute('title')) el.removeAttribute('title'); } else if (el.title !== v) el.title = v; };
+  const funded = !!s.funded, p = Math.max(0, Math.floor(s.papers) || 0), r = repu();
+  const c = paperCost(), have = Number.isFinite(s.photons) ? s.photons : 0, ready = funded && !s.paper && have >= c;
+  btn.classList.toggle('paper-ready-glow', ready);
+  if (!funded) setT(btn, '');
+  else if (s.paper) { const left = Math.max(0, (s.paper.endAt - now) / 1000);
+    setT(btn, `Drafting paper ${p + 1}: ${dur(left)} left \u00b7 Pays ${money(s.paper.pay)} on publication`); }
+  else setT(btn, `${ready ? 'Ready to write' : `Need ${fmt(Math.max(0, c - have))} more photons`} (${fmt(Math.min(have, c))} / ${fmt(c)}) \u00b7 Takes ${dur(paperSecs())} \u00b7 Pays ${money(paperPay())}`
+    + (jobEff('paper') > 0 ? ' \u00b7 Paper writer drafts the next one automatically' : ''));
+  setT($('repu'), r > 0 || p > 0 ? `Reputation ${r.toFixed(1)}: ${p} published paper${p === 1 ? '' : 's'} + owned stations / 10 \u00b7 Raises the daily stipend (+15% each) and grant amounts (+10% each)`
+    + (funded ? ` \u00b7 Next paper pays ${money(paperPay())}` : '') : '');
+  const box = $('grants'); if (!box) return;
+  const id = Object.keys(s.apps || {})[0], a = id && s.apps[id], g = a && GRANTS.find(x => x.id === id);
+  setT(box, !funded ? '' : a ? `${g ? g.name : 'Grant'} under review: answer in ${dur(Math.max(0, (a.endAt - now) / 1000))} \u00b7 One application at a time`
+    : `Approval odds rise with a Grant writer on the crew (up to +20%) \u00b7 Reputation raises grant amounts`);
+}

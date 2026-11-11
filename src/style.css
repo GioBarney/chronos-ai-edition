@@ -279,3 +279,15 @@ canvas{display:block;width:100%;max-width:100%}
 .knob.glint-urgent{box-shadow:0 0 0 2px color-mix(in srgb,var(--anomaly) 60%,transparent),0 0 16px color-mix(in srgb,var(--anomaly) 40%,transparent)}
 @keyframes glintUrgent{0%,100%{opacity:1}50%{opacity:.62}}
 @media (prefers-reduced-motion:reduce){.btn.glint.glint-urgent{animation:none;outline:2px solid var(--anomaly);outline-offset:2px}}
+/* PROP-035 (council build 28): New Game+ ready glow */
+#loopBtn.loop-ready{border-color:rgba(199,125,255,.6);animation:loopReady 2.4s ease-in-out infinite}
+@keyframes loopReady{0%,100%{box-shadow:0 0 0 0 rgba(199,125,255,0)}50%{box-shadow:0 0 12px 1px rgba(199,125,255,.35)}}
+@media (prefers-reduced-motion:reduce){#loopBtn.loop-ready{animation:none;box-shadow:0 0 0 1px rgba(199,125,255,.6)}}
+/* PROP-036 (council build 29): soft edge when every owned station has a Runner */
+#stPanel.runner-all-active{box-shadow:inset 0 0 0 1px rgba(110,231,183,.35);animation:runnerAll 3.2s ease-in-out infinite}
+@keyframes runnerAll{0%,100%{box-shadow:inset 0 0 0 1px rgba(110,231,183,.25)}50%{box-shadow:inset 0 0 0 1px rgba(110,231,183,.5)}}
+@media (prefers-reduced-motion:reduce){#stPanel.runner-all-active{animation:none}}
+/* PROP-037 (council build 30): paper ready to write */
+#paperBtn.paper-ready-glow{border-color:rgba(95,242,180,.55);animation:paperReady 2.6s ease-in-out infinite}
+@keyframes paperReady{0%,100%{box-shadow:0 0 0 0 rgba(95,242,180,0)}50%{box-shadow:0 0 10px 1px rgba(95,242,180,.3)}}
+@media (prefers-reduced-motion:reduce){#paperBtn.paper-ready-glow{animation:none;box-shadow:0 0 0 1px rgba(95,242,180,.55)}}
