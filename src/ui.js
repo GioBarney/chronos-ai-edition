@@ -153,6 +153,12 @@ function updateUI(info, now) {
   syncBuild18Visuals(info);
   syncBuild19Visuals(info);
   syncBuild20Visuals(now);
+  syncBuild21Visuals();
+  syncBuild22Visuals();
+  syncBuild23Visuals();
+  syncBuild24Visuals();
+  syncBuild26Visuals();
+  syncBuild27Visuals(now);
   syncBuild10Visuals(); // after all renders so it reads this frame's DOM and post-payday state
 }
 function buildStations() {
@@ -435,7 +441,7 @@ function syncBuild13Visuals() {
   if (!pill) { pill = document.createElement('span'); pill.className = 'ps-ready-pct'; box.querySelector('.label').appendChild(pill); }
   const r = s.free ? 1 : Math.min(1, s.photons / PHASE3_PHOTONS), m = s.free ? 1 : Math.min(1, s.money / PHASE3_MONEY), i = s.st.interf.n >= 1 ? 1 : 0;
   const pct = Math.floor((r + m + i) / 3 * 100);
-  pill.textContent = pct + '% ready'; pill.title = 'Photons, grant funds and an Interferometer';
+  pill.textContent = pct + '% ready'; // title set by syncBuild26Visuals (PROP-032)
   pill.classList.toggle('ps-ready-full', pct >= 100); // PROP-021
 }
 
@@ -482,6 +488,33 @@ function syncBuild18Visuals(info) {
     : `High clarity (${pc}) \u2014 Daily TX photon bonus active (at least 90%); Ouroboros threshold at 95%`;
 }
 
+// PROP-029 (council build 22): crew roster assignment summary tooltip on the payroll label, plus a soft hint on the crew panel while a worker is unassigned. Visual only, no save changes.
+function syncBuild22Visuals() {
+  const box = $('crewPanel'), pay = $('payroll'); if (!box || !pay) return;
+  const crew = Array.isArray(s.crew) ? s.crew : [];
+  const idle = crew.filter(w => !w.job).length, work = crew.length - idle;
+  box.classList.toggle('crew-idle-hint', !!s.funded && idle > 0);
+  if (!crew.length) { pay.removeAttribute('title'); return; }
+  const wage = crew.reduce((a, w) => a + (Number.isFinite(w.wage) ? w.wage : 0), 0);
+  const t = `Crew: ${work} assigned, ${idle} unassigned \u00b7 wages ${money(wage)}/day` + (idle ? ' \u2014 unassigned crew still draw wages; open a worker to give them a job' : '');
+  if (pay.title !== t) pay.title = t;
+}
+
+// PROP-028 (council build 21): progress tooltips on the decoder count, funding reputation (papers) and daily transmission box. Visual only, no save changes.
+// The proposal named #pkts/#papers; the real elements are #pcount (packets decoded) and the "Write a paper" row name #paperName (reputation label left untouched).
+function syncBuild21Visuals() {
+  const set = (el, txt) => { if (!el) return; if (txt) { if (el.title !== txt) el.title = txt; } else el.removeAttribute('title'); };
+  const n = Math.max(0, Math.min(PACKETS.length, Math.floor(s.packet) || 0));
+  set($('pcount'), n >= 1 ? `Signal packets decoded: ${n} / ${PACKETS.length}` + (n >= PACKETS.length ? ' \u2014 the whole transmission is in' : ' (each decode opens a new log and part)') : '');
+  const p = Math.max(0, Math.floor(s.papers) || 0);
+  set($('paperName'), p >= 5 ? `Published papers: ${p} \u2014 Bureaucrat ending paper threshold met (5+ papers)`
+    : p >= 1 ? `Published papers: ${p} / 5 toward Bureaucrat ending threshold (each paper also raises reputation)` : '');
+  const d = Math.max(0, Math.floor(s.dailyTxs) || 0), bonus = '(90%+ Clarity grants 10-min photon bonus)';
+  set($('dailyTxBox'), (s.endingsSeen && s.endingsSeen.secret) ? `Daily Transmissions logged: ${d} \u2014 1420.336 MHz harmonic corridor archived ${bonus}`
+    : d >= 3 ? `Daily Transmissions logged: ${d} \u2014 deep-band harmonic ephemeris unlocked in operator logs ${bonus}`
+    : `Daily Transmissions logged: ${d} / 3 toward deep-band harmonic ephemeris notes ${bonus}`);
+}
+
 // PROP-027 (council build 20): live percent-complete and time-left tooltips on active decode, paper and grant progress. Visual only, no save changes.
 // The grant list has no bar element, so its tooltip goes on the grant row (duration derived from the grant's review hours).
 function syncBuild20Visuals(now) {
@@ -523,3 +556,78 @@ function syncBuild15Visuals() {
     if (b.textContent !== txt) { b.textContent = txt; b.title = 'Share of total station output: ' + txt; }
     b.classList.toggle('st-share-lead', pct >= 50); });
 }
+
+// PROP-030 (council build 23): station milestone strip hover shows progress, speed multiplier and units to the next tier. Visual only, no save changes.
+function syncBuild23Visuals() {
+  if (!rt.stEl) return;
+  STATIONS.forEach(st => { const e = rt.stEl[st.id], o = s.st[st.id]; if (!e || !e.ms) return;
+    const n = o && Number.isFinite(o.n) ? o.n : 0;
+    if (n < 1) { e.ms.removeAttribute('title'); e.ms.classList.remove('st-ms-max'); return; }
+    const c = msCount(n), nm = nextMs(n), mult = Math.pow(2, c);
+    const txt = nm ? `Milestones: ${c} / ${MILESTONES.length} complete (\u00d7${mult} speed) \u00b7 Next \u00d72 tier at ${nm} owned (${nm - n} more needed)`
+      : `Milestones: ${MILESTONES.length} / ${MILESTONES.length} complete (\u00d7${mult} speed) \u00b7 Max tier reached (${MILESTONES[MILESTONES.length - 1]}+ owned)`;
+    if (e.ms.title !== txt) e.ms.title = txt;
+    e.ms.classList.toggle('st-ms-max', !nm); });
+}
+
+// PROP-031 (council build 24): Echo prestige multiplier and echo upgrade rank tooltips. Visual only, no save changes.
+function syncBuild24Visuals() {
+  const setT = (el, v) => { if (!el) return; if (!v) { if (el.hasAttribute('title')) el.removeAttribute('title'); } else if (el.title !== v) el.title = v; };
+  const E = Number.isFinite(s.echoes) ? s.echoes : 0, L = Number.isFinite(s.loops) ? s.loops : 0;
+  setT($('echoesTag'), E >= 1 || L >= 1 ? `Echoes: ${E} (+${Math.round(E * ECHO_BONUS * 100)}% output, x${echoMul().toFixed(2)} multiplier) \u00b7 Completed loops: ${L}` : '');
+  const box = $('echoesBox'), w = $('echoUpgs'); if (!box || !w) return;
+  let ranks = 0; const total = ECHO_UPG.length * ECHO_MAX_LV;
+  ECHO_UPG.forEach(u => { ranks += Math.min(ECHO_MAX_LV, echoLv(u.id)); });
+  Array.from(w.children).forEach((b, i) => { const u = ECHO_UPG[i]; if (!u) return;
+    const lv = Math.min(ECHO_MAX_LV, echoLv(u.id));
+    setT(b, lv >= ECHO_MAX_LV ? `Echo upgrade: ${u.name} \u2014 Rank ${lv} / ${ECHO_MAX_LV} (MAXED)`
+      : `Echo upgrade: ${u.name} \u2014 Rank ${lv} / ${ECHO_MAX_LV} (Cost: ${echoCost(u.id)} Echo \u00b7 Available: ${echoFree()})\n${u.desc(lv)}`); });
+  setT(box, ranks >= total ? `Echo upgrades: ${total} / ${total} total ranks unlocked (all maxed)` : `Echo upgrades: ${ranks} / ${total} total ranks unlocked`);
+  box.classList.toggle('echo-all-max', ranks >= total);
+}
+
+// PROP-032 (council build 26): Phase tag status tooltip and Phase III per-gate breakdown. Visual only, no save changes.
+// Test mode (s.free) waives the photon and money costs but never the Interferometer gate, matching canPhase3().
+function syncBuild26Visuals() {
+  const setT = (el, v) => { if (!el) return; if (!v) { if (el.hasAttribute('title')) el.removeAttribute('title'); } else if (el.title !== v) el.title = v; };
+  const ph = s.phase || 1, box = $('phaseShiftBox');
+  const P = Number.isFinite(s.photons) ? Math.max(0, s.photons) : 0, M = Number.isFinite(s.money) ? Math.max(0, s.money) : 0;
+  const I = s.st && s.st.interf && Number.isFinite(s.st.interf.n) ? s.st.interf.n : 0;
+  let tag = '';
+  if (ph >= 3) tag = `${PHASE_NAMES[3]} active \u2014 all station cycles run \u00d72 faster`;
+  else if (ph === 2) tag = `${PHASE_NAMES[2]} (\u00d71 station speed) \u2014 Phase III gates: ` +
+    (s.free ? 'photons and funds waived (test mode)' : `photons ${Math.floor(Math.min(1, P / PHASE3_PHOTONS) * 100)}% \u00b7 funds ${Math.floor(Math.min(1, M / PHASE3_MONEY) * 100)}%`) +
+    ` \u00b7 Interferometer ${Math.min(1, I)}/1`;
+  else { const n = Math.max(0, Math.min(PACKETS.length, Math.floor(s.packet) || 0));
+    tag = `${PHASE_NAMES[1]} (\u00d71 station speed) \u2014 decode all ${PACKETS.length} signal packets (${n} / ${PACKETS.length} decoded) to unlock Phase II and the $50,000 grant`; }
+  setT($('phaseTag'), tag);
+  const targets = box ? [box, $('psBtn'), box.querySelector('.ps-ready-pct')] : [];
+  if (ph !== 2 || !box) { targets.forEach(el => setT(el, '')); return; }
+  const line = (name, have, need, fmtFn) => have >= need ? `\u2713 ${name}: ${fmtFn(have)} / ${fmtFn(need)}` : `\u2717 ${name}: ${fmtFn(have)} / ${fmtFn(need)} (${fmtFn(need - have)} short)`;
+  const rows = [
+    s.free ? '\u2713 Photons: waived (test mode)' : line('Photons', P, PHASE3_PHOTONS, big),
+    s.free ? '\u2713 Funds: waived (test mode)' : line('Funds (total cash)', M, PHASE3_MONEY, money),
+    line('Interferometer', Math.min(1, I), 1, x => String(Math.floor(x)))];
+  const txt = canPhase3()
+    ? `Ready to synchronize the Deep-Time Array (\u00d72 station speed).${s.free ? '' : ` Advancing spends ${big(PHASE3_PHOTONS)} photons and ${money(PHASE3_MONEY)}.`}\n` + rows.join('\n')
+    : `Phase III gates${s.free ? '' : ' (photons and cash are spent when you advance)'}:\n` + rows.join('\n');
+  targets.forEach(el => setT(el, txt));
+}
+
+// PROP-033 (council build 27): glint countdown tooltip, dial-operator auto-catch note, and a soft pulse in the last 5 s. Visual only, no save changes.
+function syncBuild27Visuals(now) {
+  const gb = $('glintBtn'), knob = $('knob'); if (!gb) return;
+  const setT = (el, v) => { if (!el) return; if (!v) { if (el.hasAttribute('title')) el.removeAttribute('title'); } else if (el.title !== v) el.title = v; };
+  const g = s.glint, until = g && Number.isFinite(g.until) ? g.until : 0, live = until > 0 && now <= until;
+  const oper = jobEff('dial') > 0;
+  const autoTxt = oper ? `Dial operator on duty: a missed glint is auto-caught at ${Math.round(GLINT_AUTO * 100)}% value.` : 'No dial operator: a missed glint fades with no reward.';
+  let urgent = false;
+  if (live) {
+    const left = Math.max(0, (until - now) / 1000); urgent = left <= 5;
+    const reward = g.kind === 'surge' ? `×${SURGE_MUL} photons for ${Math.round(SURGE_MS / 1000)} s` : 'signal clarity refilled to 100%';
+    setT(gb, `Anomaly glint: ${Math.ceil(left)} s left. Catch it for ${reward}.\n${autoTxt}`);
+  } else setT(gb, oper ? `No glint right now (one shimmers every ${Math.round(GLINT_MIN / 60)}–${Math.round(GLINT_MAX / 60)} min of play). ${autoTxt}` : '');
+  gb.classList.toggle('glint-urgent', urgent);
+  if (knob) knob.classList.toggle('glint-urgent', urgent);
+}
+

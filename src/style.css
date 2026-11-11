@@ -229,6 +229,7 @@ canvas{display:block;width:100%;max-width:100%}
 .morale-pip[data-morale="mid"]{background:#f4c542}
 .morale-pip[data-morale="low"]{background:#ff6b6b;animation:pipPulse 1.6s ease-in-out infinite}
 @keyframes pipPulse{0%,100%{opacity:1}50%{opacity:.4}}
+.crew-idle-hint #payroll{text-decoration:underline dotted;text-underline-offset:3px}
 .payroll-warn{box-shadow:inset 0 0 0 1px rgba(255,107,107,.55)}
 .prog i.bar-active{background-image:repeating-linear-gradient(115deg,rgba(255,255,255,.18) 0 8px,rgba(255,255,255,0) 8px 20px),linear-gradient(90deg,var(--signal),var(--anomaly));background-size:40px 100%,100% 100%;animation:barShimmer 1.8s linear infinite}
 @keyframes barShimmer{to{background-position:40px 0,0 0}}
@@ -264,3 +265,17 @@ canvas{display:block;width:100%;max-width:100%}
 /* PROP-026 (council build 19): hydrogen-line lock highlight */
 .freq-locked{color:#64dfdf;text-shadow:0 0 8px rgba(100,223,223,.45);transition:color .3s,text-shadow .3s}
 @media (prefers-reduced-motion:reduce){.freq-locked{transition:none;text-shadow:none;text-decoration:underline}}
+
+.st-ms{cursor:help}
+.st-ms.st-ms-max{color:var(--signal);border-bottom:1px solid currentColor}
+
+/* PROP-031 (council build 24) */
+#echoesTag,#echoUpgs button{cursor:help}
+/* PROP-032 (council build 26) */
+#phaseTag,#phaseShiftBox,.ps-ready-pct{cursor:help}
+#echoesBox.echo-all-max{border-color:rgba(199,125,255,.45)}
+/* PROP-033 (council build 27): glint final-5s pulse */
+.btn.glint.glint-urgent{animation:glintUrgent .9s ease-in-out infinite}
+.knob.glint-urgent{box-shadow:0 0 0 2px color-mix(in srgb,var(--anomaly) 60%,transparent),0 0 16px color-mix(in srgb,var(--anomaly) 40%,transparent)}
+@keyframes glintUrgent{0%,100%{opacity:1}50%{opacity:.62}}
+@media (prefers-reduced-motion:reduce){.btn.glint.glint-urgent{animation:none;outline:2px solid var(--anomaly);outline-offset:2px}}
