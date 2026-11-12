@@ -7,6 +7,7 @@ function load() {
       if (!(o.v >= 4)) { o.v = 4; o.phase = o.funded ? 2 : 1; } // v3 -> v4: phase shifts (PROP-011)
       if (!(o.v >= 5)) { o.v = 5; o.echoes = o.echoes || 0; o.endingsSeen = o.endingsSeen || {}; } // v4 -> v5: endings (PROP-012)
       if (!(o.v >= 6)) { o.v = 6; o.loops = o.loops || 0; o.loopReady = Object.keys(o.endingsSeen || {}).length > 0; o.echoSpent = o.echoSpent || 0; o.echoUp = o.echoUp || {}; } // v5 -> v6: echoes prestige (PROP-013)
+      if (!(o.v >= 7)) { o.v = 7; o.surveys = o.surveys || 0; o.surveyAt = o.surveyAt || 0; } // v6 -> v7: long-baseline surveys (PROP-042)
       const f = fresh(); return Object.assign(f, o, { up: Object.assign(f.up, o.up || {}) }); }
   } catch (e) {}
   return null;
@@ -26,6 +27,7 @@ function catchUp(gapMs) {
   const p = (passiveRate() + operatorRate()) * sec * echoMul();
   s.photons += p; s.total += p;
   for (const st of STATIONS) advanceStation(st, sec);
+  surveyTick(Date.now()); // PROP-042: a survey that finished while away pays its star after the catch-up cycles
   const got = s.photons - before;
   if (got >= 1) toast(`While you were away you collected ${big(got)} photons${gapMs > OFFLINE_CAP ? ' (12-hour buffer full)' : ''}.`);
 }

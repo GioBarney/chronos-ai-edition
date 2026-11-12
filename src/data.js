@@ -87,13 +87,13 @@ const surgeOn = now => now < s.surgeUntil;
 // photons a full surge adds over 60 s at full clarity (the x3 minus the x1 you'd get anyway)
 const glintValue = () => (SURGE_MUL - 1) * (baseRate() + passiveRate() + operatorRate()) * SURGE_MS / 1000;
 const fresh = () => ({
-  v: 6, phase: 1, echoes: 0, endingsSeen: {}, loops: 0, loopReady: false, echoSpent: 0, echoUp: {}, startedAt: Date.now(), lastSave: Date.now(),
+  v: 7, phase: 1, echoes: 0, endingsSeen: {}, loops: 0, loopReady: false, echoSpent: 0, echoUp: {}, startedAt: Date.now(), lastSave: Date.now(),
   photons: 0, total: 0, clarity: 0, heat: 0,
   tuned: 1420.380, knobAngle: 0, drift: 0,
   up: { tuner: 0, lens: 0, horn: 0, lna: 0, sink: 0, tape: 0 },
   packet: 0, decode: null, limiterOff: false, tripUntil: 0,
   caution: 0, risk: 0, seenIntro: false, weekDone: false, muted: false, free: false, mix: defaultMix(), money: 0, buyMode: '1', st: freshSt(), stUp: freshUpSt(), funded: false, papers: 0, paper: null, apps: {}, stipendDay: 0, v2: true, crew: [], inbox: [], listing: false, nextApp: 0, scout: null, scouts: 0, payDay: 0, chequeMet: false, wseq: 1,
-  glintIn: glintGap(), glint: null, surgeUntil: 0, glints: 0, glintsAuto: 0, dailyTxDay: 0, dailyTxs: 0,
+  glintIn: glintGap(), glint: null, surgeUntil: 0, glints: 0, glintsAuto: 0, dailyTxDay: 0, dailyTxs: 0, surveys: 0, surveyAt: 0,
 });
 /* Daily transmissions (PROP-010): one short fragment per real day, rotating. fragments lead from the 137 Corridor to the secret 1420.336 MHz tuning. */
 const DAILY_TX = [
@@ -158,7 +158,16 @@ const coolRate = () => Math.pow(1.15, s.up.sink) * (1 + jobEff('cool'));
 const msCount = n => MILESTONES.filter(m => n >= m).length;
 const nextMs = n => MILESTONES.find(m => n < m);
 const cycleSecs = st => { const e = jobEff('st:' + st.id); return st.time / Math.pow(2, msCount(s.st[st.id].n)) / ((s.phase || 1) >= 3 ? 2 : 1) / (e ? 0.6 + 0.8 * e : 1); };
-const payout = st => st.rev * s.st[st.id].n * Math.pow(3, s.stUp[st.id]) * echoMul();
+const payout = st => st.rev * s.st[st.id].n * Math.pow(3, s.stUp[st.id]) * echoMul() * surveyMul();
+/* Long-baseline surveys (PROP-042, council build 34): a repeatable money sink once an Interferometer is owned.
+   Each finished survey is one Survey Star: +2% to every station payout, up to 20 stars. Stars are not a Phase III gate
+   and reset with a new loop (fresh() starts at 0). s.surveyAt is the finish time in ms of the survey in progress, 0 if none. */
+const SURVEY_BASE = 1e6, SURVEY_MUL = 10, SURVEY_SECS = 4 * 3600, SURVEY_STAR = 0.02, SURVEY_CAP = 20;
+const surveyStars = () => Math.min(SURVEY_CAP, Math.max(0, Math.floor(s.surveys || 0)));
+const surveyMul = () => 1 + SURVEY_STAR * surveyStars();
+const surveyCost = () => s.free ? 0 : SURVEY_BASE * Math.pow(SURVEY_MUL, surveyStars());
+const surveySecs = () => s.free ? 0 : SURVEY_SECS;
+const surveyOpen = () => !!(s.st && s.st.interf && s.st.interf.n >= 1);
 const upCost = st => s.free ? 0 : st.cost * 25 * Math.pow(12, s.stUp[st.id]);
 const stOpen = i => s.funded && (i === 0 || s.st[STATIONS[i - 1].id].n >= 1);
 const repu = () => s.papers + Object.values(s.st).reduce((a, o) => a + o.n, 0) / 10;

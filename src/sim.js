@@ -69,6 +69,7 @@ function tick(dt, now) {
   if (locked && !rt.prevLocked && now - rt.lastChime > 1500) { sfx.lock(); rt.lastChime = now; }
   rt.prevLocked = locked;
   glintTick(dt, now);
+  surveyTick(now);
   if (receiving && s.heat > 75 && now - rt.lastWarn > 1100) { sfx.warn(); rt.lastWarn = now; }
   return { tgt, errS, err, band, receiving, locked, tripped };
 }
@@ -100,4 +101,18 @@ function catchGlint() {
   if (g.kind === 'surge') { s.surgeUntil = now + SURGE_MS; toast('Photon surge: ×3 photons for 60 seconds.'); }
   else { s.clarity = 100; toast('The glint cleared the noise. Signal clarity is back to 100%.'); }
   save();
+}
+
+/* ---------- long-baseline surveys (PROP-042) ----------
+   Wall-clock timer (like papers), so it keeps running while the tab is closed. */
+function surveyTick(now) {
+  if (!s.surveyAt || now < s.surveyAt) return;
+  s.surveyAt = 0; s.surveys = Math.min(SURVEY_CAP, (s.surveys || 0) + 1);
+  sfx.decoded(); toast(`Survey complete. Survey Star ${s.surveys} of ${SURVEY_CAP}: stations pay +${Math.round((surveyMul() - 1) * 100)}%.`); save();
+}
+function startSurvey() {
+  if (!surveyOpen() || s.surveyAt || surveyStars() >= SURVEY_CAP) return;
+  const c = surveyCost(); if (s.money < c) return;
+  s.money -= c; s.surveyAt = Date.now() + surveySecs() * 1000; ensureAudio(); sfx.buy();
+  toast(`Long-baseline survey started. Back in ${dur(surveySecs())}.`); save();
 }

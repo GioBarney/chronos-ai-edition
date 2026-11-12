@@ -87,6 +87,14 @@ function run(profile, maxDays) {
     s.apps[pick.id] = { endAt: t + pick.hrs * 3600, ok: grantChance(pick), amt: grantAmt(pick) };
   }
   const hasCheque = () => s.crew.some(w => w.cheque);
+  // PROP-042: long-baseline surveys. Start one whenever the tab is open, none is running, and it leaves the Phase III money in hand.
+  let surveyEnd = 0;
+  function trySurvey() {
+    if (surveyEnd && t >= surveyEnd) { surveyEnd = 0; s.surveys++; }
+    if (surveyEnd || !surveyOpen() || surveyStars() >= SURVEY_CAP) return;
+    const c = surveyCost(), keep = s.phase === 2 ? PHASE3_MONEY : 0;
+    if (s.money - c >= keep) { s.money -= c; surveyEnd = t + surveySecs(); out.log.push('survey' + (s.surveys + 1) + ' d' + (t / DAY + 1).toFixed(1)); }
+  }
   while (t < maxD * DAY) {
     const hr = hrOf(t), day = dayOf(t), sess = inSess(hr), open = sess || isOpen(hr);
     // wall clock bookkeeping: startedAt = 0 so dayNum comes from t
@@ -112,6 +120,7 @@ function run(profile, maxDays) {
     // PROP-019: log one Daily Transmission per day in a session once the first packet is decoded (game: dayNum(now) > s.dailyTxDay)
     if (sess && s.packet >= 1 && day + 1 > txDay) { txDay = day + 1; s.dailyTxs++; }
     if (open) { trySpendPhotons(); }
+    if (open) trySurvey();
     if (open) { startPaperIfPossible(open); startGrant(open); tryBuy(); tryHire();
       if (s.funded && !hasCheque() && s.money > 20000) { s.crew.push({ id: 0, cheque: true, job: 'cool', wage: 2000, morale: 90, raises: 0, st: { work: 8, tech: 9, writing: 3, loyalty: 10, ambition: 1 } }); } }
     // payday at each day rollover
@@ -121,7 +130,7 @@ function run(profile, maxDays) {
     if (s.phase >= 3 && !out.ending && open && (s.papers >= 5 || s.caution >= 5)) { out.ending = t / DAY; break; }
     t += STEP;
   }
-  out.final = { day: t / DAY, packet: s.packet, papers: s.papers, money: s.money, photons: s.photons, stations: Object.fromEntries(STATIONS.map(x => [x.id, s.st[x.id].n])), crew: s.crew.length };
+  out.final = { day: t / DAY, packet: s.packet, papers: s.papers, money: s.money, photons: s.photons, stations: Object.fromEntries(STATIONS.map(x => [x.id, s.st[x.id].n])), crew: s.crew.length, surveys: s.surveys };
   return out;`;
   const src = `${stubs}\n${read('data.js')}\n${crewFormulas}\nconst P = ${JSON.stringify(P)}, maxD = ${maxDays};\nfunction __run() {${driver}}\n__run();`;
   return vm.runInNewContext(src, {}, { timeout: 120000 });
