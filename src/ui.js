@@ -446,7 +446,9 @@ function syncBuild13Visuals() {
   const r = s.free ? 1 : Math.min(1, s.photons / PHASE3_PHOTONS), m = s.free ? 1 : Math.min(1, s.money / PHASE3_MONEY), i = s.st.interf.n >= 1 ? 1 : 0;
   const tx = s.free ? 1 : Math.min(1, (s.dailyTxs || 0) / PHASE3_TX); // PROP-019
   const pct = Math.floor((r + m + i + tx) / 4 * 100);
-  pill.textContent = pct + '% ready'; // title set by syncBuild26Visuals (PROP-032)
+  const txN = Math.max(0, Math.min(PHASE3_TX, Math.floor(s.dailyTxs) || 0));
+  const txt = pct + '% ready' + (s.free || (s.phase || 1) !== 2 ? '' : ` \u00b7 ${txN}/${PHASE3_TX} TX`); // PROP-040 (council build 33); title set by syncBuild26Visuals (PROP-032)
+  if (pill.textContent !== txt) pill.textContent = txt;
   pill.classList.toggle('ps-ready-full', pct >= 100); // PROP-021
 }
 
@@ -618,7 +620,10 @@ function syncBuild26Visuals() {
   const txt = canPhase3()
     ? `Ready to synchronize the Deep-Time Array (\u00d72 station speed).${s.free ? '' : ` Advancing spends ${big(PHASE3_PHOTONS)} photons and ${money(PHASE3_MONEY)}.`}\n` + rows.join('\n')
     : `Phase III gates${s.free ? '' : ' (photons and cash are spent when you advance)'}:\n` + rows.join('\n');
-  targets.forEach(el => setT(el, txt));
+  // PROP-040 (council build 33): lead line on the readiness pill tooltip with the Daily Transmission count; the PROP-032 per-gate breakdown stays below it.
+  const pill = box.querySelector('.ps-ready-pct'), TXn = Math.floor(Math.min(PHASE3_TX, TX)), need = PHASE3_TX - TXn;
+  const lead = s.free ? '' : `Daily Transmissions logged: ${TXn} / ${PHASE3_TX} (` + (need > 0 ? `${need} more real-day transmission${need === 1 ? '' : 's'} needed for Phase III)` : `Phase III ${PHASE3_TX}-TX gate met)`) + '\n';
+  targets.forEach(el => setT(el, el === pill ? lead + txt : txt));
 }
 
 // PROP-033 (council build 27): glint countdown tooltip, dial-operator auto-catch note, and a soft pulse in the last 5 s. Visual only, no save changes.
