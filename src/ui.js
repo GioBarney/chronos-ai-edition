@@ -254,6 +254,7 @@ function renderFunding(now) {
     $('paperMeta').textContent = `Uses ${fmt(c)} photons, takes ${dur(paperSecs())}, pays ${money(paperPay())}.`;
     $('paperProg').hidden = true; $('paperBtn').disabled = s.photons < c; $('paperBtn').textContent = s.photons < c ? 'Need photons' : 'Write';
   }
+  renderSurvey(now);
   const busy = Object.keys(s.apps).length > 0;
   GRANTS.forEach(g => { const e = rt.gEl[g.id], a = s.apps[g.id];
     if (a) { e.meta.textContent = `Under review. Answer in ${dur((a.endAt - now) / 1000)}.`; e.btn.disabled = true; e.btn.textContent = 'Pending'; }
@@ -264,6 +265,24 @@ $('stipBtn').onclick = () => { const now = Date.now(); if (!s.funded || !(s.free
   const amt = stipendAmt(); s.money += amt; s.stipendDay = dayNum(now); ensureAudio(); sfx.cash(); toast(`Stipend received: ${money(amt)}.`); save(); };
 $('paperBtn').onclick = () => { const c = paperCost(); if (s.paper || s.photons < c) return; ensureAudio();
   s.photons -= c; const secs = paperSecs(); s.paper = { endAt: Date.now() + secs * 1000, secs, pay: paperPay() }; sfx.buy(); save(); };
+// Long-baseline surveys (PROP-042): shown once an Interferometer is owned.
+function renderSurvey(now) {
+  const row = $('surveyRow'); row.hidden = !surveyOpen(); if (row.hidden) return;
+  const n = surveyStars(), btn = $('surveyBtn'), prog = $('surveyProg'), bonus = `Survey Stars ${n}/${SURVEY_CAP} \u00b7 stations +${Math.round((surveyMul() - 1) * 100)}%`;
+  if (s.surveyAt) {
+    const secs = surveySecs(), left = Math.max(0, (s.surveyAt - now) / 1000), pct = secs ? clamp(1 - left / secs, 0, 1) * 100 : 100;
+    $('surveyMeta').textContent = `Surveying the sky. ${dur(left)} left. ${bonus}.`;
+    prog.hidden = false; prog.firstElementChild.style.width = pct.toFixed(1) + '%'; prog.firstElementChild.classList.add('bar-active');
+    btn.disabled = true; btn.textContent = 'Surveying';
+  } else if (n >= SURVEY_CAP) {
+    $('surveyMeta').textContent = `${bonus}. The sky is fully mapped.`; prog.hidden = true; btn.disabled = true; btn.textContent = 'Done';
+  } else {
+    const c = surveyCost();
+    $('surveyMeta').textContent = `Costs ${money(c)}, takes ${dur(surveySecs())}, adds +${Math.round(SURVEY_STAR * 100)}% to all station payouts. ${bonus}.`;
+    prog.hidden = true; prog.firstElementChild.classList.remove('bar-active'); btn.disabled = s.money < c; btn.textContent = s.money < c ? 'Need money' : 'Survey';
+  }
+}
+$('surveyBtn').onclick = startSurvey;
 function renderStationBars() { if (!rt.stEl) return; STATIONS.forEach(st => { const o = s.st[st.id]; rt.stEl[st.id].fill.style.width = (o.run ? o.p * 100 : 0) + '%'; }); }
 $('buyMode').onclick = () => { s.buyMode = s.buyMode === '1' ? '10' : s.buyMode === '10' ? 'max' : '1'; sfx.click(); save(); };
 
