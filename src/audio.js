@@ -65,7 +65,13 @@ function applyMix() {
   MIX.forEach(m => { if (m.id !== 'master') BUS[m.id].gain.setTargetAtTime(volOf(m.id), t, 0.05); });
 }
 function ensureAudio() {
-  if (AC) { if (AC.state === 'suspended') AC.resume(); return; }
+  if (AC) {
+    if (AC.state === 'suspended') {
+      // PROP-039: some mobile browsers reject resume() outside a gesture; swallow it so a later gesture can retry.
+      try { const r = AC.resume(); if (r && typeof r.catch === 'function') r.catch(function () {}); } catch (_) {}
+    }
+    return;
+  }
   try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
   master = AC.createGain(); master.gain.value = volOf('master') * 0.95;
   const comp = AC.createDynamicsCompressor(); master.connect(comp); comp.connect(AC.destination);

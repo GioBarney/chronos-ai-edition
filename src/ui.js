@@ -162,6 +162,7 @@ function updateUI(info, now) {
   syncBuild28Visuals();
   syncBuild29Visuals();
   syncBuild30Visuals(now);
+  syncBuild32Visuals(info);
   syncBuild10Visuals(); // after all renders so it reads this frame's DOM and post-payday state
 }
 function buildStations() {
@@ -702,4 +703,18 @@ function syncBuild30Visuals(now) {
   const id = Object.keys(s.apps || {})[0], a = id && s.apps[id], g = a && GRANTS.find(x => x.id === id);
   setT(box, !funded ? '' : a ? `${g ? g.name : 'Grant'} under review: answer in ${dur(Math.max(0, (a.endAt - now) / 1000))} \u00b7 One application at a time`
     : `Approval odds rise with a Grant writer on the crew (up to +20%) \u00b7 Reputation raises grant amounts`);
+}
+
+// PROP-039 (council build 32): dial tooltip with the signed offset from the drifting target and the dish-polish drift note. Read-only, no save changes.
+function syncBuild32Visuals(info) {
+  const knob = $('knob'); if (!knob || !info) return;
+  let txt;
+  if (info.tripped) txt = 'Receiver tripped \u2014 cooling down to reset threshold';
+  else {
+    const off = Number.isFinite(info.errS) ? info.errS : 0, lv = (s.up && s.up.lens) || 0;
+    const slow = Math.round((1 - driftMul()) * 100);
+    txt = `Tuned ${s.tuned.toFixed(3)} MHz \u00b7 ${info.locked ? 'Locked on' : `Offset ${off >= 0 ? '+' : '\u2212'}${Math.abs(off).toFixed(3)} MHz from the drifting target`}`
+      + (lv > 0 ? ` \u00b7 Dish polish level ${lv} slows target drift by ${slow}%` : ' \u00b7 Polishing the dish surface slows target drift');
+  }
+  if (knob.title !== txt) knob.title = txt;
 }
