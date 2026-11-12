@@ -163,6 +163,7 @@ function updateUI(info, now) {
   syncBuild29Visuals();
   syncBuild30Visuals(now);
   syncBuild32Visuals(info);
+  syncBuild35Visuals(now);
   syncBuild10Visuals(); // after all renders so it reads this frame's DOM and post-payday state
 }
 function buildStations() {
@@ -741,4 +742,25 @@ function syncBuild32Visuals(info) {
       + (lv > 0 ? ` \u00b7 Dish polish level ${lv} slows target drift by ${slow}%` : ' \u00b7 Polishing the dish surface slows target drift');
   }
   if (knob.title !== txt) knob.title = txt;
+}
+
+// PROP-043 (council build 35): Survey Star progress tooltip, live countdown, 20-star gold badge and the survey share of station payout tooltips. Visual only, no save or balance changes.
+function syncBuild35Visuals(now) {
+  const row = $('surveyRow'), btn = $('surveyBtn');
+  const setT = (el, v) => { if (!el) return; if (!v) { if (el.hasAttribute('title')) el.removeAttribute('title'); } else if (el.title !== v) el.title = v; };
+  const n = surveyStars(), pct = Math.round((surveyMul() - 1) * 100), mul = 'x' + surveyMul().toFixed(2);
+  const hms = sec => { sec = Math.max(0, Math.ceil(sec)); const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), x = sec % 60; return `${h}h ${m}m ${x}s`; };
+  if (row) {
+    const open = surveyOpen(); let tip = '';
+    if (open) {
+      const head = `Survey Stars ${n} / ${SURVEY_CAP} \u00b7 station payouts +${pct}% (${mul})`;
+      if (n >= SURVEY_CAP) tip = `${head} \u00b7 All ${SURVEY_CAP} Survey Stars cataloged: the sky is fully mapped (max +${Math.round(SURVEY_CAP * SURVEY_STAR * 100)}%)`;
+      else if (s.surveyAt) tip = `${head} \u00b7 Survey in progress: ${hms((s.surveyAt - now) / 1000)} remaining`;
+      else tip = `${head} \u00b7 Next survey: ${money(surveyCost())}, ` + (s.free ? 'free and instant (test mode)' : `${dur(surveySecs())} real time`) + ` \u00b7 Each star adds +${Math.round(SURVEY_STAR * 100)}%`;
+    }
+    setT(row, tip); setT(btn, tip);
+    row.classList.toggle('survey-max', open && n >= SURVEY_CAP);
+  }
+  if (rt.stEl) STATIONS.forEach(st => { const e = rt.stEl[st.id], o = s.st[st.id]; if (!e || !e.pay) return;
+    setT(e.pay, o && o.n >= 1 && n >= 1 ? `+${big(payout(st))} ph per cycle \u00b7 Survey Stars: +${pct}% (${n}/${SURVEY_CAP} stars, ${mul})` : ''); });
 }
