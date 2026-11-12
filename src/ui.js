@@ -164,6 +164,7 @@ function updateUI(info, now) {
   syncBuild30Visuals(now);
   syncBuild32Visuals(info);
   syncBuild35Visuals(now);
+  syncBuild36Visuals(now);
   syncBuild10Visuals(); // after all renders so it reads this frame's DOM and post-payday state
 }
 function buildStations() {
@@ -764,3 +765,21 @@ function syncBuild35Visuals(now) {
   if (rt.stEl) STATIONS.forEach(st => { const e = rt.stEl[st.id], o = s.st[st.id]; if (!e || !e.pay) return;
     setT(e.pay, o && o.n >= 1 && n >= 1 ? `+${big(payout(st))} ph per cycle \u00b7 Survey Stars: +${pct}% (${n}/${SURVEY_CAP} stars, ${mul})` : ''); });
 }
+
+// PROP-044 (council build 36): Survey Star summary pill in the Funding header (stars N/20, payout bonus, live countdown). Click scrolls to the survey row. Visual only, no save or balance changes.
+function syncBuild36Visuals(now) {
+  const pill = $('hdrSurveyPill'); if (!pill) return;
+  const fundOpen = !$('fundBody').hidden, open = fundOpen && surveyOpen();
+  if (pill.hidden === open) pill.hidden = !open;
+  if (!open) return;
+  const n = surveyStars(), pct = Math.round((surveyMul() - 1) * 100), max = n >= SURVEY_CAP;
+  let txt = `\u2605 ${n}/${SURVEY_CAP} \u00b7 +${pct}%` + (max ? ' MAX' : '');
+  if (!max && s.surveyAt) { const sec = Math.max(0, Math.ceil((s.surveyAt - now) / 1000)), h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60);
+    txt += ` \u00b7 ${h}h ${String(m).padStart(2, '0')}m`; }
+  if (pill.textContent !== txt) pill.textContent = txt;
+  const lbl = `Survey Stars ${n} of ${SURVEY_CAP}, station payouts +${pct}%` + (max ? ', fully mapped' : s.surveyAt ? ', survey in progress' : '') + '. Show survey';
+  if (pill.getAttribute('aria-label') !== lbl) { pill.setAttribute('aria-label', lbl); pill.title = lbl; }
+  pill.classList.toggle('active', !max && !!s.surveyAt); pill.classList.toggle('max', max);
+}
+$('hdrSurveyPill').onclick = () => { const row = $('surveyRow'); if (!row || row.hidden) return;
+  row.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'center' }); };
